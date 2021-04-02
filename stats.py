@@ -3,18 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import compress
-import original_embed
-import scaling_embed
-import original_extract
-import scaling_extract
 from measure import Measure
-from rdh import RDH
+from rdh import *
 
-ORIGINAL_IMAGE_PATH = 'res/lena_gray_256.png'
+ORIGINAL_IMAGE_PATH = 'res/gradient.png'
 DATA_PATH = 'res/data.txt'
-# RDH_ALGORITHMS = [RDH('original', embed.embed, extract.extract)]
-RDH_ALGORITHMS = [RDH('scaling', scaling_embed.embed, scaling_extract.extract),
-                  RDH('original', original_embed.embed, original_extract.extract)]
+RDH_ALGORITHMS = [scaling_algorithm, original_algorithm]
 COMPRESSION_ALGORITHM = compress.Zlib()
 
 original_image = cv2.imread(ORIGINAL_IMAGE_PATH)[:, :, 0]

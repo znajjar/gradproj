@@ -1,3 +1,9 @@
+import original_embed
+import original_extract
+import scaling_embed
+import scaling_extract
+
+
 class RDH:
     def __init__(self, label, embed, extract=None):
         self.embed = embed
@@ -6,3 +12,7 @@ class RDH:
 
     def __str__(self) -> str:
         return self.label
+
+
+original_algorithm = RDH('original', original_embed.embed, original_extract.extract)
+scaling_algorithm = RDH('scaling', scaling_embed.embed, scaling_extract.extract)
