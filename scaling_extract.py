@@ -3,9 +3,8 @@ import argparse
 import cv2
 
 from compress import Zlib
-from data_buffer import DataBuffer
+from data_buffer import BoolDataBuffer
 from shared import *
-
 
 
 def get_peaks(peaks):
@@ -88,7 +87,7 @@ def main():
     iterations = 0
     data = []
     hidden_data = ''
-    buffer = DataBuffer(np.bool)
+    buffer = BoolDataBuffer()
     buffer.set_parity(get_lsb([header_pixels[0]]))
 
     process()

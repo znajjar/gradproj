@@ -1,13 +1,12 @@
 import numpy as np
 
 
-class DataBuffer:
-    def __init__(self, dtype, *args: iter, calc_parity=False):
-        self._dtype = dtype
-        self._buffer = np.empty((0,), dtype=dtype)
+class BoolDataBuffer:
+    def __init__(self, *args: iter, calc_parity=False):
+        self._buffer = np.empty((0,), dtype=np.bool)
         self._index = 0
         for data in args:
-            self._buffer = np.append(self._buffer, data).astype(dtype)
+            self._buffer = np.append(self._buffer, data).astype(np.bool)
 
         self._parity = False
         if calc_parity:
@@ -24,8 +23,12 @@ class DataBuffer:
             self._index = last_index
         return ret ^ self._parity
 
+    def next_int(self, length=8):
+        bits = next(length)
+        return
+
     def add(self, data):
-        self._buffer = np.append(data, self._buffer[self._index:]).astype(self._dtype)
+        self._buffer = np.append(data, self._buffer[self._index:]).astype(np.bool)
         self._index = 0
 
     def set_parity(self, parity):

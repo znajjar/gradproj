@@ -3,7 +3,7 @@ import argparse
 import cv2
 
 from compress import Lzma
-from data_buffer import DataBuffer
+from data_buffer import BoolDataBuffer
 from shared import *
 
 
@@ -81,7 +81,7 @@ def main():
     iterations = 0
     data = []
     hidden_data = ''
-    buffer = DataBuffer(np.bool)
+    buffer = BoolDataBuffer()
 
     process()
     process_data()
@@ -91,7 +91,7 @@ def main():
 
 def extract(image, decompression=None):
     global processed_image, decompress
-    processed_image = image
+    processed_image = image.copy()
     if decompression:
         decompress = decompression
     main()

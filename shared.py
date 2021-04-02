@@ -6,6 +6,7 @@ COMPRESSED_DATA_LENGTH_BITS = 16
 MAX_PIXEL_VALUE = 255
 COMPRESSION_LEVEL = 9
 HEADER_SIZE = 17
+EPS = 0.00000005
 
 
 def integer_to_binary(number: int, bits=8):
@@ -20,10 +21,7 @@ def binary_to_string(binary):
 
 
 def binary_to_integer(binary):
-    binary_str = ''
-    for bit in binary:
-        binary_str += binary_to_string(bit)
-    return int(binary_str, 2)
+    return int.from_bytes(bits_to_bytes(binary), byteorder='big', signed=False)
 
 
 def get_lsb(values):

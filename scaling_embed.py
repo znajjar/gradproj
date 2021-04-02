@@ -2,18 +2,14 @@ import argparse
 
 import cv2
 
-from compress import Lzma
 from compress import Zlib
-from data_buffer import DataBuffer
+from data_buffer import BoolDataBuffer
 from shared import *
-from decimal import *
-
-getcontext().prec = 50
 
 
 def get_is_rounded(og, processed):
     processed_pixels_temp = processed / (np.max(processed) / (original_max - original_min))
-    processed_pixels_temp = np.round(processed_pixels_temp, 7)
+    processed_pixels_temp += EPS
     processed_pixels_temp = np.floor(processed_pixels_temp)
     return processed_pixels_temp + original_min - og
 
@@ -31,16 +27,10 @@ def preprocess():
     scale_factor = scaled_max / shifted_max
     processed_pixels *= scale_factor
     processed_pixels[processed_pixels_og == original_max] = scaled_max
+    processed_pixels -= EPS
     processed_pixels = np.ceil(processed_pixels)
 
     is_rounded = get_is_rounded(processed_pixels_og, processed_pixels)
-    print('unique values in is_rounded before fixing:', np.unique(is_rounded))
-
-    processed_pixels[is_rounded == -1] += 1
-
-
-    is_rounded = get_is_rounded(processed_pixels_og, processed_pixels)
-    print('unique values in is_rounded after fixing:', np.unique(is_rounded))
     is_rounded = is_rounded.astype(np.bool)
 
     processed_pixels += iterations
@@ -53,7 +43,7 @@ def fill_buffer():
     is_modified_size_bits = integer_to_binary(len(is_modified_compressed), COMPRESSED_DATA_LENGTH_BITS)
     is_modified_bits = bytes_to_bits(is_modified_compressed)
     hidden_data_bits = bytes_to_bits(hidden_data)
-    buffer = DataBuffer(np.bool, is_modified_size_bits, is_modified_bits, hidden_data_bits, calc_parity=True)
+    buffer = BoolDataBuffer(is_modified_size_bits, is_modified_bits, hidden_data_bits, calc_parity=True)
     parity = buffer.get_parity()
 
 

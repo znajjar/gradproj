@@ -3,7 +3,7 @@ import argparse
 import cv2
 
 from compress import Lzma
-from data_buffer import DataBuffer
+from data_buffer import BoolDataBuffer
 from shared import *
 
 
@@ -27,7 +27,7 @@ def fill_buffer():
     is_modified_size_bits = integer_to_binary(len(is_modified_compressed), COMPRESSED_DATA_LENGTH_BITS)
     is_modified_bits = bytes_to_bits(is_modified_compressed)
     hidden_data_bits = bytes_to_bits(hidden_data)
-    buffer = DataBuffer(np.bool, is_modified_size_bits, is_modified_bits, hidden_data_bits)
+    buffer = BoolDataBuffer(is_modified_size_bits, is_modified_bits, hidden_data_bits)
 
 
 def get_peaks():
