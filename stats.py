@@ -1,3 +1,7 @@
+import argparse
+import os
+
+import PIL.Image as Image
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,66 +10,38 @@ from skimage.metrics import structural_similarity
 import compress
 from measure import Measure
 from rdh import *
+from shared import bits_to_bytes
 
-ORIGINAL_IMAGE_NAME = 'peppers'
-ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}.png'
+parser = argparse.ArgumentParser()
+parser.add_argument('source', help='The path of the original image.', type=str)
+args = parser.parse_args()
+
+ORIGINAL_IMAGE_NAME = args.source
+ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
-RDH_ALGORITHMS = [original_algorithm, scaling_algorithm]
-COMPRESSION_ALGORITHM = compress.Zlib()
+RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm]
+
+image_name, _ = os.path.splitext(ORIGINAL_IMAGE_NAME)
+
+original_image = np.uint8(Image.open(ORIGINAL_IMAGE_PATH).getchannel(0))
+dims = original_image.shape
+if len(dims) > 2:
+    original_image = original_image[:, :, 0]
+
+np.random.seed(2115)
+data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
 
 
-def plot(xs, ys, labels, x_label, y_label, name):
+def plot(ys, labels, x_label, y_label, name):
     plt.figure()
-    for x, y, label in zip(xs, ys, labels):
-        plt.plot(x, y, 'o', label=label, markersize=3)
+    for y, label in zip(ys, labels):
+        plt.plot(range(1, len(y) + 1), y, '-o', label=label, markersize=3)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
     plt.savefig(f'plots/{name}.png')
-    plt.show()
 
 
-def evaluate():
-    global iterations_count
-    if rdh.extract:
-        try:
-            recovered_image, iterations_count, extracted_data = \
-                Measure(rdh.extract, 'extraction')(processed_image.copy())
-            is_successful = not np.any(original_image - recovered_image)
-            hidden_data_size = len(extracted_data) * 8
-        except Exception as e:
-            print(e)
-            is_successful = False
-            hidden_data_size = 0
-            recovered_image = None
-
-    else:
-        recovered_image = None
-        hidden_data_size = 8 * (len(data) - len(remaining_data))
-        is_successful = hidden_data_size >= 0
-
-    if is_successful:
-        print(hidden_data_size, 'bits')
-        print(hidden_data_size / 8000, 'kb')
-        print(round(hidden_data_size / original_image.size, 3), 'bit/pixel')
-        algorithm_iterations.append(iterations_count)
-        algorithm_rations.append(hidden_data_size / original_image.size)
-        algorithm_stds.append(np.std(processed_image, dtype=np.float64))
-        algorithm_means.append(np.mean(processed_image, dtype=np.float64))
-        algorithm_ssids.append(structural_similarity(original_image, processed_image))
-    else:
-        print('extraction failed')
-        if recovered_image is not None:
-            print('PSNR =', cv2.PSNR(original_image, recovered_image))
-
-    return
-
-
-original_image = cv2.imread(ORIGINAL_IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
-data = open(DATA_PATH, 'rb').read()
-
-ITERATIONS = np.arange(1, 65)
-iterations = []
 ratios = []
 stds = []
 means = []
@@ -75,45 +51,57 @@ for rdh in RDH_ALGORITHMS:
     print('======================')
     print(rdh)
     print('======================')
-    algorithm_iterations = []
     algorithm_rations = []
     algorithm_stds = []
     algorithm_means = []
     algorithm_ssids = []
-    for iterations_count in ITERATIONS:
+    for iterations_count in range(1, rdh.limit + 1):
         print(f'{iterations_count} iterations:')
 
-        processed_image, remaining_data = Measure(rdh.embed, 'embedding')(original_image.copy(), data, iterations_count,
-                                                                          COMPRESSION_ALGORITHM.compress)
-        evaluate()
+        processed_image, remaining_data = Measure(rdh.embed, 'embedding')(original_image.copy(), data, iterations_count)
+        if rdh.extract:
+            try:
+                recovered_image, extraction_iterations, extracted_data = Measure(rdh.extract, 'extraction')(
+                    processed_image.copy())
+                is_successful = \
+                    not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
+                hidden_data_size = len(extracted_data) * 8
+            except Exception as e:
+                print(e)
+                is_successful = False
+                hidden_data_size = 0
+                recovered_image = None
+        else:
+            recovered_image = None
+            hidden_data_size = 8 * (len(data) - len(remaining_data))
+            is_successful = hidden_data_size >= 0
+
+        if is_successful:
+            print(hidden_data_size, 'bits')
+            print(hidden_data_size / 8000, 'kb')
+            print(round(hidden_data_size / original_image.size, 3), 'bit/pixel')
+            algorithm_rations.append(hidden_data_size / original_image.size)
+            algorithm_stds.append(np.std(processed_image, dtype=np.float64))
+            algorithm_means.append(np.mean(processed_image, dtype=np.float64))
+            algorithm_ssids.append(structural_similarity(original_image, processed_image))
+        else:
+            print('extraction failed')
+            if recovered_image is not None:
+                print('PSNR =', cv2.PSNR(original_image, recovered_image))
+            break
 
         print('total time:', stopwatch)
         print('----------------------')
 
-    iterations.append(algorithm_iterations)
     ratios.append(algorithm_rations)
     stds.append(algorithm_stds)
     means.append(algorithm_means)
     ssids.append(algorithm_ssids)
 
-algorithm_iterations = []
-algorithm_rations = []
-algorithm_stds = []
-algorithm_means = []
-algorithm_ssids = []
-rdh = unidirectional_algorithm
-processed_image = rdh.embed(original_image.copy(), data)
-evaluate()
-iterations.append(algorithm_iterations)
-ratios.append(algorithm_rations)
-stds.append(algorithm_stds)
-means.append(algorithm_means)
-ssids.append(algorithm_ssids)
-
 algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
 algorithms_labels.append(unidirectional_algorithm.label)
 
-plot(iterations, ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', ORIGINAL_IMAGE_NAME + '_rate')
-plot(iterations, stds, algorithms_labels, 'Iterations', 'Standard Deviation', ORIGINAL_IMAGE_NAME + '_std')
-plot(iterations, means, algorithms_labels, 'Iterations', 'Mean Brightness', ORIGINAL_IMAGE_NAME + '_mean')
-plot(iterations, ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', ORIGINAL_IMAGE_NAME + '_ssid')
+plot(ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', image_name + '_rate')
+plot(stds, algorithms_labels, 'Iterations', 'Standard Deviation', image_name + '_std')
+plot(means, algorithms_labels, 'Iterations', 'Mean Brightness', image_name + '_mean')
+plot(ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', image_name + '_ssid')

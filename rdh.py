@@ -6,15 +6,21 @@ from unidirection import embed, extract
 
 
 class RDH:
-    def __init__(self, label, embed, extract=None):
+    INF = 10000
+
+    def __init__(self, label, limit, embed, extract=None):
         self.embed = embed
         self.extract = extract
         self.label = label
+        if limit == -1:
+            self.limit = RDH.INF
+        else:
+            self.limit = limit
 
     def __str__(self) -> str:
         return self.label
 
 
-original_algorithm = RDH('original', original_embed.embed, original_extract.extract)
-scaling_algorithm = RDH('scaling', scaling_embed.embed, scaling_extract.extract)
-unidirectional_algorithm = RDH('unidirectional', embed.embed, extract.extract)
+original_algorithm = RDH('original', 64, original_embed.embed, original_extract.extract)
+scaling_algorithm = RDH('scaling', 63, scaling_embed.embed, scaling_extract.extract)
+unidirectional_algorithm = RDH('unidirectional', -1, embed.embed, extract.extract)

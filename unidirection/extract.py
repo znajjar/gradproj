@@ -1,7 +1,7 @@
 import PIL.Image as Image
 
 from unidirection.configurations import *
-from unidirection.data_buffer import DataBuffer
+from data_buffer import BoolDataBuffer
 
 
 def imsave(filename, img):
@@ -10,7 +10,7 @@ def imsave(filename, img):
 
 def get_payload(P_H):
     embedded_data = np.logical_or(img == P_H, img == P_H + d)
-    return DataBuffer(bool, img[embedded_data] != P_H)
+    return BoolDataBuffer(img[embedded_data] != P_H)
 
 
 def shift_in_between(P_L, P_H):

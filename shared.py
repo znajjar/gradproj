@@ -89,6 +89,7 @@ def get_mapped_values(og_max, scaled_max):
     recovered_values = scaled_values / scale_factor
     recovered_values += EPS
     recovered_values = np.floor(recovered_values)
+
     mapped_values = scaled_values[np.where(recovered_values - og_values != 0)]
     if not len(mapped_values):
         mapped_values = np.array([-1])

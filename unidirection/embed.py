@@ -73,8 +73,6 @@ def get_overhead(P_L, P_H, flag, location_map, arr):
 def process():
     global img, old_P_L, old_P_H, overhead_data, pure_embedded_data, d, iteration, capacity
     while True:
-        if iteration == 72:
-            print()
         hist = get_hist(img)
         P_L, P_H = get_peaks_from_hist(hist)  # what if there are multiple options?
         capacity = np.sum(img == P_H)
@@ -91,7 +89,7 @@ def process():
         else:
             overhead_data = get_overhead(old_P_L, old_P_H, 1, compressed_map, overhead_data)
 
-        if overhead_data.size > capacity:
+        if overhead_data.size > capacity or iteration == iterations_limit:
             break
 
         pure_embedded_data += capacity - overhead_data.size
@@ -108,8 +106,14 @@ def process():
 
 
 def main():
-    global overhead_data, img, header_pixels, M, N
-    np.random.seed(2115)
+    global overhead_data, img, header_pixels, M, N, hidden_data_index, d, old_P_L, old_P_H, \
+        iteration, pure_embedded_data
+    hidden_data_index = 0
+    d = 1
+    old_P_L = 0
+    old_P_H = 0
+    iteration = 0
+    pure_embedded_data = 0
     M, N = img.shape
     img = img.flatten()
     header_pixels = img[-16:]
@@ -118,31 +122,35 @@ def main():
     process()
 
 
-def embed(cover_image, data):
-    global img, hidden_data
+def embed(cover_image, data, limit=None):
+    global img, hidden_data, iterations_limit
+    if limit:
+        iterations_limit = limit
     img = cover_image
     hidden_data = bytes_to_bits(data)
     main()
-    return img
+    return img, hidden_data[hidden_data_index:]
 
 
-hidden_data_index = 0
-d = 1
-old_P_L = 0
-old_P_H = 0
-iteration = 0
-pure_embedded_data = 0
+hidden_data_index = None
+d = None
+old_P_L = None
+old_P_H = None
+iteration = None
+pure_embedded_data = None
 header_pixels = None
 img = None
 M = None
 N = None
 overhead_data = None
 capacity = None
+iterations_limit = 1000000
 
 if __name__ == '__main__':
     hidden_data = bytes_to_bits(open('res/data.txt', 'rb').read())
     # hidden_data = np.array([])
     img = np.uint8(Image.open(IMAGE_PATH))
+    # np.random.seed(2115)
     # hidden_data = np.random.randint(0, 2, size=2000 * 2000) > 0
     main()
     print("Took", iteration, "iterations")
