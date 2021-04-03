@@ -61,10 +61,14 @@ def recover_image():
     shifted_max = original_max - original_min
     scaled_max = np.max(processed_pixels)
     scale_factor = scaled_max / shifted_max
+
+    mapped_values = get_mapped_values(shifted_max, scaled_max)
+    mapped_values = np.in1d(processed_pixels, mapped_values)
+
     processed_pixels /= scale_factor
     processed_pixels = np.round(processed_pixels, 7)
     processed_pixels = np.floor(processed_pixels).astype(np.uint8)
-    processed_pixels -= is_rounded
+    processed_pixels[mapped_values] -= is_rounded[:len(processed_pixels[mapped_values])]
     processed_pixels += original_min
 
 
