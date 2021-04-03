@@ -1,95 +1,119 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from skimage.metrics import structural_similarity
 
 import compress
 from measure import Measure
 from rdh import *
 
-ORIGINAL_IMAGE_PATH = 'res/lena_gray_512.png'
+ORIGINAL_IMAGE_NAME = 'peppers'
+ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}.png'
 DATA_PATH = 'res/data.txt'
-RDH_ALGORITHMS = [scaling_algorithm, original_algorithm]
+RDH_ALGORITHMS = [original_algorithm, scaling_algorithm]
 COMPRESSION_ALGORITHM = compress.Zlib()
 
-original_image = cv2.imread(ORIGINAL_IMAGE_PATH)[:, :, 0]
+
+def plot(xs, ys, labels, x_label, y_label, name):
+    plt.figure()
+    for x, y, label in zip(xs, ys, labels):
+        plt.plot(x, y, 'o', label=label, markersize=3)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.savefig(f'plots/{name}.png')
+    plt.show()
+
+
+def evaluate():
+    global iterations_count
+    if rdh.extract:
+        try:
+            recovered_image, iterations_count, extracted_data = \
+                Measure(rdh.extract, 'extraction')(processed_image.copy())
+            is_successful = not np.any(original_image - recovered_image)
+            hidden_data_size = len(extracted_data) * 8
+        except Exception as e:
+            print(e)
+            is_successful = False
+            hidden_data_size = 0
+            recovered_image = None
+
+    else:
+        recovered_image = None
+        hidden_data_size = 8 * (len(data) - len(remaining_data))
+        is_successful = hidden_data_size >= 0
+
+    if is_successful:
+        print(hidden_data_size, 'bits')
+        print(hidden_data_size / 8000, 'kb')
+        print(round(hidden_data_size / original_image.size, 3), 'bit/pixel')
+        algorithm_iterations.append(iterations_count)
+        algorithm_rations.append(hidden_data_size / original_image.size)
+        algorithm_stds.append(np.std(processed_image, dtype=np.float64))
+        algorithm_means.append(np.mean(processed_image, dtype=np.float64))
+        algorithm_ssids.append(structural_similarity(original_image, processed_image))
+    else:
+        print('extraction failed')
+        if recovered_image is not None:
+            print('PSNR =', cv2.PSNR(original_image, recovered_image))
+
+    return
+
+
+original_image = cv2.imread(ORIGINAL_IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
 data = open(DATA_PATH, 'rb').read()
 
-iterations = np.arange(1, 64)
+ITERATIONS = np.arange(1, 65)
+iterations = []
 ratios = []
 stds = []
 means = []
+ssids = []
 for rdh in RDH_ALGORITHMS:
     stopwatch = Measure()
     print('======================')
     print(rdh)
     print('======================')
-    print('----------------------')
+    algorithm_iterations = []
     algorithm_rations = []
     algorithm_stds = []
     algorithm_means = []
-    for iterations_count in iterations:
+    algorithm_ssids = []
+    for iterations_count in ITERATIONS:
         print(f'{iterations_count} iterations:')
 
-        processed_image, remaining_data = Measure(rdh.embed, 'embedding')(original_image, data, iterations_count,
+        processed_image, remaining_data = Measure(rdh.embed, 'embedding')(original_image.copy(), data, iterations_count,
                                                                           COMPRESSION_ALGORITHM.compress)
+        evaluate()
 
-        if rdh.extract:
-            try:
-                recovered_image, _, extracted_data = \
-                    Measure(rdh.extract, 'extraction')(processed_image, COMPRESSION_ALGORITHM.decompress)
-                is_successful = not np.any(original_image - recovered_image)
-                hidden_data_size = len(extracted_data) * 8
-            except:
-                is_successful = False
-                hidden_data_size = 0
-                recovered_image = None
-
-        else:
-            recovered_image = None
-            hidden_data_size = 8 * (len(data) - len(remaining_data))
-            is_successful = hidden_data_size >= 0
-
-        if is_successful:
-            print(hidden_data_size, 'bits')
-            print(hidden_data_size / 8000, 'kb')
-            print(round(hidden_data_size / original_image.size, 3), 'bit/pixel')
-            algorithm_rations.append(hidden_data_size / original_image.size)
-            algorithm_stds.append(np.std(processed_image, dtype=np.float64))
-            algorithm_means.append(np.mean(processed_image, dtype=np.float64))
-        else:
-            print('extraction failed')
-            if recovered_image is not None:
-                print('PSNR =', cv2.PSNR(original_image, recovered_image))
-            algorithm_rations.append(0)
-            algorithm_stds.append(0)
-            algorithm_means.append(0)
         print('total time:', stopwatch)
-        print()
+        print('----------------------')
 
+    iterations.append(algorithm_iterations)
     ratios.append(algorithm_rations)
     stds.append(algorithm_stds)
     means.append(algorithm_means)
+    ssids.append(algorithm_ssids)
 
-plt.figure(0)
-for ratio, algo in zip(ratios, RDH_ALGORITHMS):
-    plt.plot(iterations, ratio, label=algo.label)
-plt.xlabel('Iterations')
-plt.ylabel('Pure hiding ratio (bit per pixel)')
-plt.legend()
-plt.show()
+algorithm_iterations = []
+algorithm_rations = []
+algorithm_stds = []
+algorithm_means = []
+algorithm_ssids = []
+rdh = unidirectional_algorithm
+processed_image = rdh.embed(original_image.copy(), data)
+evaluate()
+iterations.append(algorithm_iterations)
+ratios.append(algorithm_rations)
+stds.append(algorithm_stds)
+means.append(algorithm_means)
+ssids.append(algorithm_ssids)
 
-plt.figure(1)
-for mean, algo in zip(stds, RDH_ALGORITHMS):
-    plt.plot(iterations, mean, label=algo.label)
-plt.xlabel('Iterations')
-plt.ylabel(f'Standard Deviation.')
-plt.legend()
-plt.show()
+algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
+algorithms_labels.append(unidirectional_algorithm.label)
 
-plt.figure(2)
-for mean, algo in zip(means, RDH_ALGORITHMS):
-    plt.plot(iterations, mean, label=algo.label)
-plt.xlabel('Iterations')
-plt.ylabel(f'Mean Brightness.')
-plt.legend()
-plt.show()
+plot(iterations, ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', ORIGINAL_IMAGE_NAME + '_rate')
+plot(iterations, stds, algorithms_labels, 'Iterations', 'Standard Deviation', ORIGINAL_IMAGE_NAME + '_std')
+plot(iterations, means, algorithms_labels, 'Iterations', 'Mean Brightness', ORIGINAL_IMAGE_NAME + '_mean')
+plot(iterations, ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', ORIGINAL_IMAGE_NAME + '_ssid')

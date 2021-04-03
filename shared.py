@@ -76,3 +76,20 @@ def decompress(compressed_data_bits):
 def get_header_and_body(image: np.ndarray, header_size=HEADER_SIZE) -> (np.ndarray, np.ndarray):
     image = image.ravel()
     return image[:header_size], image[header_size:]
+
+
+def get_mapped_values(og_max, scaled_max):
+    scale_factor = scaled_max / og_max
+    og_values = np.arange(0, MAX_PIXEL_VALUE)
+
+    scaled_values = og_values * scale_factor
+    scaled_values -= EPS
+    scaled_values = np.ceil(scaled_values)
+
+    recovered_values = scaled_values / scale_factor
+    recovered_values += EPS
+    recovered_values = np.floor(recovered_values)
+    mapped_values = scaled_values[np.where(recovered_values - og_values != 0)]
+    if not len(mapped_values):
+        mapped_values = np.array([-1])
+    return mapped_values

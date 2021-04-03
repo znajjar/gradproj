@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 
-from compress import Lzma
+from compress import Zlib
 from data_buffer import BoolDataBuffer
 from shared import *
 
@@ -110,7 +110,7 @@ is_modified = None
 is_modifiable = None
 buffer = None
 
-decompress = Lzma().decompress
+decompress = Zlib().decompress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

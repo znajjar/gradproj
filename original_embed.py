@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 
-from compress import Lzma
+from compress import Zlib
 from data_buffer import BoolDataBuffer
 from shared import *
 
@@ -141,7 +141,7 @@ iterations = None
 processed_image = None
 buffer = None
 
-compress = Lzma().compress
+compress = Zlib().compress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
