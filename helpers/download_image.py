@@ -1,5 +1,6 @@
-import requests
 import shutil
+
+import requests
 
 
 def download_image(image_url, filename=''):
@@ -12,6 +13,6 @@ def download_image(image_url, filename=''):
         r.raw.decode_content = True
         with open('img/' + filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
-        print('Image sucessfully Downloaded: ', filename)
+        print('Image successfully Downloaded: ', filename)
     else:
-        print('Image Couldn\'t be retreived')
+        print("Image Couldn't be retrieved")
