@@ -101,7 +101,7 @@ for rdh in RDH_ALGORITHMS:
 algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
 algorithms_labels.append(unidirectional_algorithm.label)
 
-plot(ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', image_name + '_rate')
-plot(stds, algorithms_labels, 'Iterations', 'Standard Deviation', image_name + '_std')
-plot(means, algorithms_labels, 'Iterations', 'Mean Brightness', image_name + '_mean')
-plot(ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', image_name + '_ssid')
+plot(ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', f'rate_{image_name}')
+plot(stds, algorithms_labels, 'Iterations', 'Standard Deviation', f'std_{image_name}')
+plot(means, algorithms_labels, 'Iterations', 'Mean Brightness', f'mean_{image_name}')
+plot(ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', f'ssid_{image_name}')
