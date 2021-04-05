@@ -36,3 +36,16 @@ class Bz2:
 
     def __str__(self):
         return 'bz2'
+
+
+class NoCompress:
+    @staticmethod
+    def compress(data_bytes):
+        return data_bytes
+
+    @staticmethod
+    def decompress(data_bytes):
+        return data_bytes
+
+    def __str__(self):
+        return 'no compression'

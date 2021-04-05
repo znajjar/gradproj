@@ -1,6 +1,7 @@
 import PIL.Image as Image
 
 from unidirection.configurations import *
+from shared import read_image
 
 
 def imsave(filename, img):
@@ -149,7 +150,7 @@ iterations_limit = 1000000
 if __name__ == '__main__':
     hidden_data = bytes_to_bits(open('res/data.txt', 'rb').read())
     # hidden_data = np.array([])
-    img = np.uint8(Image.open(IMAGE_PATH))
+    img = read_image(IMAGE_PATH)
     # np.random.seed(2115)
     # hidden_data = np.random.randint(0, 2, size=2000 * 2000) > 0
     main()

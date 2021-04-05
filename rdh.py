@@ -22,5 +22,5 @@ class RDH:
 
 
 original_algorithm = RDH('original', 64, original_embed.embed, original_extract.extract)
-scaling_algorithm = RDH('scaling', 63, scaling_embed.embed, scaling_extract.extract)
+scaling_algorithm = RDH('scaling', -1, scaling_embed.embed, scaling_extract.extract)
 unidirectional_algorithm = RDH('unidirectional', -1, embed.embed, extract.extract)

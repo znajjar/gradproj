@@ -26,12 +26,10 @@ def preprocess():
     scaled_max = MAX_PIXEL_VALUE - 2 * iterations
     scale_factor = scaled_max / shifted_max
     processed_pixels *= scale_factor
-    # processed_pixels[processed_pixels_og == original_max] = scaled_max
     processed_pixels -= EPS
     processed_pixels = np.ceil(processed_pixels)
 
     mapped_values = get_mapped_values(shifted_max, scaled_max)
-    # print(f'values that need a map: {mapped_values}')
 
     is_rounded = get_is_rounded(processed_pixels_og, processed_pixels)[np.in1d(processed_pixels, mapped_values)]
     is_rounded = is_rounded.astype(np.bool)
@@ -178,7 +176,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path = args.source
-    cover_image = cv2.imread(path)[:, :, 0]
+    cover_image = read_image(path)
     hidden_data = args.data
     iterations = args.iterations
 
