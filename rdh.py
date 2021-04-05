@@ -2,7 +2,7 @@ import original_embed
 import original_extract
 import scaling_embed
 import scaling_extract
-from unidirection import embed, extract
+from unidirection import uni_embed, bp_uni_embed, uni_extract
 
 
 class RDH:
@@ -23,4 +23,5 @@ class RDH:
 
 original_algorithm = RDH('original', 64, original_embed.embed, original_extract.extract)
 scaling_algorithm = RDH('scaling', -1, scaling_embed.embed, scaling_extract.extract)
-unidirectional_algorithm = RDH('unidirectional', -1, embed.embed, extract.extract)
+unidirectional_algorithm = RDH('unidirectional', -1, uni_embed.embed, uni_extract.extract)
+bp_unidirectional_algorithm = RDH('bp_unidirectional', -1, bp_uni_embed.embed, uni_extract.extract)

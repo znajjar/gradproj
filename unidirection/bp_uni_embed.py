@@ -61,44 +61,6 @@ def get_minimum_closest(hist, P_H):
         else:
             return closest_left
 
-# def get_peaks_from_hist(hist):
-#     global img, brightness
-#
-#     current_brightness = np.mean(img)
-#     if brightness - current_brightness > 0:
-#         P_H = hist[:L - 2].argmax()
-#     elif brightness - current_brightness < 0:
-#         P_H = hist[2:].argmax() + 2
-#     else:
-#         P_H = hist.argmax()
-#
-#     hist_prev = (np.roll(hist, 1) + hist)[P_H + 2:]
-#     # hist_prev = (np.concatenate([[0], hist[:L - 1]]) + hist)[P_H + 2:]
-#     candidates = np.where(hist_prev == hist_prev.min())[0] + P_H + 2
-#     closest_right = candidates[np.abs(candidates - P_H).argmin()]
-#
-#     hist_next = (np.roll(hist, -1) + hist)[:P_H - 2 + 1]
-#     # hist_next = (np.concatenate([hist[1:], [0]]) + hist)[:P_H - 2 + 1]
-#     candidates = np.where(hist_next == hist_next.min())[0]
-#     closest_left = candidates[np.abs(candidates - P_H).argmin()]
-#
-#     if brightness - current_brightness > 0 or P_H < 2:
-#         P_L = closest_right
-#     elif brightness - current_brightness < 0 or P_H > 253:
-#         P_L = closest_left
-#     else:
-#         if hist_prev.min() < hist_next.min():
-#             P_L = closest_right
-#         elif hist_prev.min() > hist_next.min():
-#             P_L = closest_left
-#         else:
-#             if abs(closest_right - P_H) < abs(closest_left - P_H):
-#                 P_L = closest_right
-#             else:
-#                 P_L = closest_left
-#
-#     return P_L, P_H
-
 
 def get_location_map(P_L):
     location_map = img[np.logical_or(img == P_L - d, img == P_L)]
@@ -235,4 +197,5 @@ if __name__ == '__main__':
     print("Pure embedding data:", pure_embedded_data, "bits")
     print("Embedding Capacity:", pure_embedded_data / M / N)
     print("STD: ", np.std(img))
+    print("mean: ", np.mean(img))
     imsave("out/embedded_uni.png", img)

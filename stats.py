@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.metrics import structural_similarity
 
-import compress
 from measure import Measure
 from rdh import *
 from shared import bits_to_bytes, read_image
@@ -16,9 +15,9 @@ parser.add_argument('source', help='The path of the original image.', type=str)
 args = parser.parse_args()
 
 ORIGINAL_IMAGE_NAME = args.source
-ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
+ORIGINAL_IMAGE_PATH = f'res/dataset-50/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
-RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm]
+RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
 
 image_name, _ = os.path.splitext(ORIGINAL_IMAGE_NAME)
 
@@ -38,7 +37,7 @@ def plot(ys, labels, x_label, y_label, name):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
-    plt.savefig(f'plots/{name}.png')
+    plt.savefig(f'plots/dataset-50/{name}.png')
 
 
 ratios = []
