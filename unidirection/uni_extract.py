@@ -75,7 +75,7 @@ def main():
     LSB = get_lsb(header_pixel)
     P_L = binary_to_integer(LSB[0:PEAK_BITS])
     P_H = binary_to_integer(LSB[PEAK_BITS:2 * PEAK_BITS])
-    hidden_data = np.array([], dtype=np.bool)
+    hidden_data = np.array([], dtype=bool)
 
     process()
 
