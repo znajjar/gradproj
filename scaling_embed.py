@@ -34,8 +34,8 @@ def preprocess():
     is_rounded = get_is_rounded(processed_pixels_og, processed_pixels)[np.in1d(processed_pixels, mapped_values)]
     is_rounded = is_rounded.astype(np.bool)
 
-    processed_pixels += iterations
     processed_pixels = processed_pixels.astype(np.uint8)
+    processed_pixels += iterations
 
 
 def fill_buffer():

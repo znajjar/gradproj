@@ -81,7 +81,7 @@ def get_header_and_body(image: np.ndarray, header_size=HEADER_SIZE) -> (np.ndarr
 
 def get_mapped_values(og_max, scaled_max):
     scale_factor = scaled_max / og_max
-    og_values = np.arange(MAX_PIXEL_VALUE)
+    og_values = np.arange(MAX_PIXEL_VALUE + 1)
 
     scaled_values = og_values * scale_factor
     scaled_values -= EPS
