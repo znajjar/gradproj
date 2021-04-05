@@ -57,11 +57,12 @@ for rdh in RDH_ALGORITHMS:
     for iterations_count in range(1, rdh.limit + 1):
         print(f'{iterations_count} iterations:')
 
-        processed_image, remaining_data = Measure(rdh.embed, 'embedding')(original_image.copy(), data, iterations_count)
+        processed_image, remaining_data = Measure(rdh.embed, 'embedding', print_time=True)\
+            (original_image.copy(), data, iterations_count)
         if rdh.extract:
             try:
-                recovered_image, extraction_iterations, extracted_data = Measure(rdh.extract, 'extraction')(
-                    processed_image.copy())
+                recovered_image, extraction_iterations, extracted_data = \
+                    Measure(rdh.extract, 'extraction', print_time=True)(processed_image.copy())
                 is_successful = \
                     not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
                 hidden_data_size = len(extracted_data) * 8

@@ -23,13 +23,14 @@ class BoolDataBuffer:
             self._index = last_index
         return ret ^ self._parity
 
-    def next_int(self, length=8):
-        bits = next(length)
-        return
-
     def add(self, data):
-        self._buffer = np.append(data, self._buffer[self._index:]).astype(np.bool)
-        self._index = 0
+        data_size = len(data)
+        if self._index >= data_size:
+            self._buffer[self._index - data_size:self._index] = data
+            self._index -= data_size
+        else:
+            self._buffer = np.append(data, self._buffer[self._index:]).astype(np.bool)
+            self._index = 0
 
     def set_parity(self, parity):
         self._parity = parity

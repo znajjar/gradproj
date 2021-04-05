@@ -99,3 +99,8 @@ def get_mapped_values(og_max, scaled_max):
 
 def read_image(path):
     return np.uint8(Image.open(path).getchannel(0)).copy()
+
+
+def get_peaks(pixels, n=2):
+    hist = np.bincount(pixels)
+    return np.sort(hist.argsort()[-n:])

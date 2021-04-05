@@ -4,6 +4,7 @@ import cv2
 
 from compress import Zlib
 from data_buffer import BoolDataBuffer
+from measure import Measure
 from shared import *
 
 
@@ -46,9 +47,11 @@ def fill_buffer():
     hidden_data_bits = bytes_to_bits(hidden_data)
     buffer = BoolDataBuffer(is_modified_size_bits, is_modified_bits, hidden_data_bits, calc_parity=True)
     parity = buffer.get_parity()
+    buffer.next = Measure(buffer.next)
+    buffer.add = Measure(buffer.add)
 
 
-def get_peaks():
+def get_peaks_old():
     hist, _ = np.histogram(processed_pixels, 256, [0, 256])
     max_value = hist.max(initial=None)
     max_value_indices = np.argwhere(hist == max_value)
@@ -83,7 +86,7 @@ def process():
 
     while iterations:
         iterations -= 1
-        left_peak, right_peak = get_peaks()
+        left_peak, right_peak = get_peaks(processed_pixels)
 
         processed_pixels[processed_pixels < left_peak] -= 1
         processed_pixels[processed_pixels > right_peak] += 1
@@ -183,5 +186,17 @@ if __name__ == '__main__':
     with open(hidden_data, 'rb') as data:
         hidden_data = data.read()
 
+    preprocess = Measure(preprocess)
+    fill_buffer = Measure(fill_buffer)
+    process = Measure(process)
+    get_peaks = Measure(get_peaks)
+
     main()
     write_image()
+
+    print(f'preprocess time {preprocess.get_total()}')
+    print(f'fill buffer time {fill_buffer.get_total()}')
+    print(f'process time {process.get_total()}')
+    print(f'get peaks time {get_peaks.get_total()}')
+    print(f'buffer add time {buffer.add.get_total()}')
+    print(f'buffer next time {buffer.next.get_total()}')
