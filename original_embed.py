@@ -30,25 +30,6 @@ def fill_buffer():
     buffer = BoolDataBuffer(is_modified_size_bits, is_modified_bits, hidden_data_bits)
 
 
-def get_peaks():
-    hist, _ = np.histogram(processed_pixels, 256, [0, 256])
-    max_value = hist.max(initial=None)
-    max_value_indices = np.argwhere(hist == max_value)
-    max_peak = max_value_indices[0][0]
-    if max_value_indices.size > 1:
-        second_max_peak = max_value_indices[-1][0]
-    else:
-        hist[hist == max_value] = 0
-        max_value = hist.max(initial=None)
-        max_value_indices = np.argwhere(hist == max_value)
-        second_max_peak = max_value_indices[0][0]
-
-    if max_peak > second_max_peak:
-        max_peak, second_max_peak = second_max_peak, max_peak
-
-    return max_peak, second_max_peak
-
-
 def process():
     global iterations
     previous_left_peaks = previous_right_peaks = 0
@@ -63,7 +44,7 @@ def process():
 
     while iterations:
         iterations -= 1
-        left_peak, right_peak = get_peaks()
+        left_peak, right_peak = get_peaks(processed_pixels)
 
         processed_pixels[processed_pixels < left_peak] -= 1
         processed_pixels[processed_pixels > right_peak] += 1
@@ -151,7 +132,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path = args.source
-    cover_image = cv2.imread(path)[:, :, 0]
+    cover_image = read_image(path)
     hidden_data = args.data
     iterations = args.iterations
 

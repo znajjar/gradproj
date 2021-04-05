@@ -1,5 +1,6 @@
 import lzma
 
+import PIL.Image as Image
 import numpy as np
 
 COMPRESSED_DATA_LENGTH_BITS = 16
@@ -80,7 +81,7 @@ def get_header_and_body(image: np.ndarray, header_size=HEADER_SIZE) -> (np.ndarr
 
 def get_mapped_values(og_max, scaled_max):
     scale_factor = scaled_max / og_max
-    og_values = np.arange(0, MAX_PIXEL_VALUE)
+    og_values = np.arange(MAX_PIXEL_VALUE + 1)
 
     scaled_values = og_values * scale_factor
     scaled_values -= EPS
@@ -94,3 +95,12 @@ def get_mapped_values(og_max, scaled_max):
     if not len(mapped_values):
         mapped_values = np.array([-1])
     return mapped_values
+
+
+def read_image(path):
+    return np.uint8(Image.open(path).getchannel(0)).copy()
+
+
+def get_peaks(pixels, n=2):
+    hist = np.bincount(pixels)
+    return np.sort(hist.argsort()[-n:])
