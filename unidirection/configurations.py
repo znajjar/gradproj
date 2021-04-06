@@ -9,6 +9,7 @@ PEAK_BITS = 8
 FLAG_BIT = 1
 COMPRESSION_LEVEL = 9
 IMAGE_PATH = "res/gradient.png"
+BRIGHTNESS_THRESHOLD = 0.1
 
 
 def integer_to_binary(number: int, bits=8):

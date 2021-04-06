@@ -2,6 +2,8 @@ import PIL.Image as Image
 
 from unidirection.configurations import *
 
+from shared import read_image
+
 
 def imsave(filename, img):
     Image.fromarray(img).save(filename)
@@ -15,16 +17,16 @@ def get_peaks_from_hist(hist):
     global img, brightness
 
     current_brightness = np.mean(img)
-    if brightness - current_brightness > 0:
+    if brightness - current_brightness > BRIGHTNESS_THRESHOLD:
         P_H = hist[:L - 2].argmax()
-    elif brightness - current_brightness < 0:
+    elif brightness - current_brightness < -BRIGHTNESS_THRESHOLD:
         P_H = hist[2:].argmax() + 2
     else:
         P_H = hist.argmax()
 
-    if brightness - current_brightness > 0 or P_H < 2:
+    if brightness - current_brightness > BRIGHTNESS_THRESHOLD or P_H < 2:
         P_L = get_minimum_closest_right(hist, P_H)
-    elif brightness - current_brightness < 0 or P_H > 253:
+    elif brightness - current_brightness < -BRIGHTNESS_THRESHOLD or P_H > 253:
         P_L = get_minimum_closest_left(hist, P_H)
     else:
         P_L = get_minimum_closest(hist, P_H)
@@ -94,7 +96,7 @@ def embed_in_LSB(P_L, P_H):
 
 def get_overhead(P_L, P_H, location_map, footer):
     compressed_map = bytes_to_bits(compress(location_map))
-    flag = location_map.size < compressed_map.size
+    flag = location_map.size > compressed_map.size
 
     if flag:
         return np.concatenate([
@@ -189,7 +191,7 @@ iterations_limit = 1000000
 if __name__ == '__main__':
     # hidden_data = bytes_to_bits(open('res/data.txt', 'rb').read())
     # hidden_data = np.array([])
-    img = np.uint8(Image.open(IMAGE_PATH))
+    img = read_image(IMAGE_PATH)
     np.random.seed(2115)
     hidden_data = np.random.randint(0, 2, size=2000 * 2000) > 0
     main()

@@ -85,7 +85,7 @@ def embed_in_LSB(P_L, P_H):
 
 def get_overhead(P_L, P_H, location_map, footer):
     compressed_map = bytes_to_bits(compress(location_map))
-    flag = location_map.size < compressed_map.size
+    flag = location_map.size > compressed_map.size
 
     if flag:
         return np.concatenate([
