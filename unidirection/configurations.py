@@ -1,4 +1,4 @@
-import zlib
+import deflate
 
 import numpy as np
 
@@ -7,7 +7,7 @@ COMPRESSED_DATA_LENGTH_BITS = 16
 LSB_BITS = 16
 PEAK_BITS = 8
 FLAG_BIT = 1
-COMPRESSION_LEVEL = 9
+DEFLATE_COMPRESSION_LEVEL = 12
 IMAGE_PATH = "res/gradient.png"
 BRIGHTNESS_THRESHOLD = 0.1
 
@@ -47,9 +47,9 @@ def bits_to_bytes(buffer):
 
 def compress(data_bits):
     data_bytes = bits_to_bytes(data_bits)
-    return zlib.compress(data_bytes, level=COMPRESSION_LEVEL)
+    return deflate.gzip_compress(data_bytes, DEFLATE_COMPRESSION_LEVEL)
 
 
 def decompress(compressed_data_bits):
     data_bytes = bits_to_bytes(compressed_data_bits)
-    return zlib.decompress(data_bytes)
+    return deflate.gzip_decompress(data_bytes)
