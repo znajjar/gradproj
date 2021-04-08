@@ -84,8 +84,8 @@ def write_image():
 
 def main():
     global header_pixels, processed_pixels, binary_data_index, binary_data, peaks
-    header_pixels = cover_image.ravel()[:16]
-    processed_pixels = cover_image.ravel()[16:]
+    header_pixels = cover_image.ravel()[:16].copy()
+    processed_pixels = cover_image.ravel()[16:].copy()
     binary_data_index = 0
     binary_data = []
     peaks = []

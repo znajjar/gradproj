@@ -8,8 +8,8 @@ from measure import Measure
 from shared import *
 
 
-def get_is_rounded(og, processed):
-    processed_pixels_temp = processed / (np.max(processed) / (original_max - original_min))
+def get_is_rounded(og, processed, factor):
+    processed_pixels_temp = processed / factor
     processed_pixels_temp += EPS
     processed_pixels_temp = np.floor(processed_pixels_temp)
     return processed_pixels_temp + original_min - og
@@ -30,9 +30,9 @@ def preprocess():
     processed_pixels -= EPS
     processed_pixels = np.ceil(processed_pixels)
 
-    mapped_values = get_mapped_values(shifted_max, scaled_max)
+    mapped_values = get_mapped_values(MAX_PIXEL_VALUE, scaled_max)
 
-    is_rounded = get_is_rounded(processed_pixels_og, processed_pixels)[np.in1d(processed_pixels, mapped_values)]
+    is_rounded = get_is_rounded(processed_pixels_og, processed_pixels, scale_factor)[np.in1d(processed_pixels, mapped_values)]
     is_rounded = is_rounded.astype(np.bool)
 
     processed_pixels = processed_pixels.astype(np.uint8)

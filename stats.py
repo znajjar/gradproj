@@ -81,7 +81,7 @@ for rdh in RDH_ALGORITHMS:
             print(round(hidden_data_size / original_image.size, 3), 'bit/pixel')
             algorithm_rations.append(hidden_data_size / original_image.size)
             algorithm_stds.append(np.std(processed_image, dtype=np.float64))
-            algorithm_means.append(np.mean(processed_image, dtype=np.float64))
+            algorithm_means.append(np.abs(np.mean(original_image) - np.mean(processed_image, dtype=np.float64)))
             algorithm_ssids.append(structural_similarity(original_image, processed_image))
         else:
             print('extraction failed')

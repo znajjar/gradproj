@@ -3,6 +3,8 @@ import lzma
 import PIL.Image as Image
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 COMPRESSED_DATA_LENGTH_BITS = 16
 MAX_PIXEL_VALUE = 255
 COMPRESSION_LEVEL = 9
@@ -75,7 +77,7 @@ def decompress(compressed_data_bits):
 
 
 def get_header_and_body(image: np.ndarray, header_size=HEADER_SIZE) -> (np.ndarray, np.ndarray):
-    image = image.ravel()
+    image = image.ravel().copy()
     return image[:header_size], image[header_size:]
 
 
@@ -104,3 +106,14 @@ def read_image(path):
 def get_peaks(pixels, n=2):
     hist = np.bincount(pixels)
     return np.sort(hist.argsort()[-n:])
+
+
+def show_hist(image):
+    bins = np.bincount(image.ravel())
+    hist = np.zeros((MAX_PIXEL_VALUE + 1, ))
+    hist[:len(bins)] = bins
+    plt.figure()
+    plt.xlabel('Intensity Value')
+    plt.ylabel('Count')
+    plt.hist(np.arange(MAX_PIXEL_VALUE + 1), MAX_PIXEL_VALUE + 1, weights=hist)
+    plt.show()

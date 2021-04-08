@@ -59,10 +59,10 @@ def recover_image():
     processed_pixels = processed_pixels.astype(np.float64)
     processed_pixels -= iterations
     shifted_max = original_max - original_min
-    scaled_max = np.max(processed_pixels)
-    scale_factor = scaled_max / shifted_max
+    scaled_max = MAX_PIXEL_VALUE - 2 * iterations
+    scale_factor = scaled_max / MAX_PIXEL_VALUE
 
-    mapped_values = get_mapped_values(shifted_max, scaled_max)
+    mapped_values = get_mapped_values(MAX_PIXEL_VALUE, scaled_max)
     mapped_values = np.in1d(processed_pixels, mapped_values)
 
     processed_pixels /= scale_factor
