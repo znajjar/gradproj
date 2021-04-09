@@ -5,11 +5,11 @@ The algorithm described in the original paper (Reversible Image Data Hiding with
 
 Looking at the resulting image after preprocessing we can see that it causes distortion:   
 
-<img src="assets/markdown-img-paste-20210408123251387.png"/> <br />  
+<img src="assets/markdown-img-paste-20210408123251387.png"/> <br />
 
 If we look closely at the pixel values before and after preprocessing for a small segment of the image we can see what's causing this:  
 
-<img src="assets/markdown-img-paste-20210408124119839.png" width="500"/> <br />
+<img src="assets/f-16_pixel_comp.png"/> <br />
 
 Values that are a little below L increase by L while values that are above stay the same which translates into really visible distortion in the image.
 
@@ -17,15 +17,18 @@ Values that are a little below L increase by L while values that are above stay 
 Instead of adding and subtracting L from the pixel values to clear [0, L - 1] and [256 - L, 255], we can linearly scale the image to fit in [L, 255 - L].
 #### Main Algorithm
 1. Shift the image to the left by the minimum value in it.   
+
   <img src="assets/markdown-img-paste-20210408125805754.png" width="500"/> <br />  
 
 1. Find the scale factor with the following formula:  
   `scale_factor = (255 - 2 * L) / shifted_max`  
   Where `shifted_max` is the maximum value in the image after shifting.  
-1. Multiply the image with the scaling factor and round the values up to the nearest integer.
+1. Multiply the image with the scaling factor and round the values up to the nearest integer.  
+
   <img src="assets/markdown-img-paste-2021040813090662.png" width="500"/> <br />  
 
-1. Now we have `2 * L` bins cleared from the upper part of the image. We want [0, L - 1] and [256 - L, 255] so we add L to the image to achieve that.
+1. Now we have `2 * L` bins cleared from the upper part of the image. We want [0, L - 1] and [256 - L, 255] so we add L to the image to achieve that.  
+
   <img src="assets/markdown-img-paste-20210408131232873.png" width="500"/> <br />  
 
 #### Finding the Map
