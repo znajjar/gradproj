@@ -16,19 +16,16 @@ Values that are a little below L increase by L while values that are above stay 
 # Solution
 Instead of adding and subtracting L from the pixel values to clear [0, L - 1] and [256 - L, 255], we can linearly scale the image to fit in [L, 255 - L].
 #### Main Algorithm
-1. Shift the image to the left by the minimum value in it.   
-
+1. Shift the image to the left by the minimum value in it.  
   <img src="assets/markdown-img-paste-20210408125805754.png" width="500"/> <br />  
 
 1. Find the scale factor with the following formula:  
   `scale_factor = (255 - 2 * L) / shifted_max`  
   Where `shifted_max` is the maximum value in the image after shifting.  
 1. Multiply the image with the scaling factor and round the values up to the nearest integer.  
-
   <img src="assets/markdown-img-paste-2021040813090662.png" width="500"/> <br />  
 
 1. Now we have `2 * L` bins cleared from the upper part of the image. We want [0, L - 1] and [256 - L, 255] so we add L to the image to achieve that.  
-
   <img src="assets/markdown-img-paste-20210408131232873.png" width="500"/> <br />  
 
 #### Finding the Map
@@ -55,4 +52,20 @@ Consider we have a 4-bit image and L = 3.
 1. Now we now that only the following values in P need a map to be recovered correctly:  
   [ 2,  4,  6,  8, 10]
 
-Now the map has to only cover pixels with these values and the rest can be skipped. The same operation can be done the extraction process to know which values pixels are covered by the map.
+Now the map has to only cover pixels with these values and the rest can be skipped. The same operation can be done in the extraction process to know which values pixels are covered by the map.
+
+#### Comparison
+Now let's look at a comparison between the two algorithms.   
+![](assets/scaling_comp.png)  
+
+![](assets/scaling_comp1.png)  
+
+We can see that the image processed with the scaling algorithm is much better looking and more useable.
+
+![](assets/scaling_comp_hist.png)
+
+We can see here that the histogram with the scaling algorithm maintains its original shape but gets compressed in a smaller region.
+
+![](assets/scaling_comp_slice.png)
+
+We can finally see here that the pixels maintain their values relative to each other.
