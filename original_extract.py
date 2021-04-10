@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 
-from compress import Zlib
+from compress import Deflate
 from data_buffer import BoolDataBuffer
 from shared import *
 
@@ -75,8 +75,7 @@ def main():
     global header_pixels, processed_pixels, header_pixels, processed_pixels, \
         iterations, data, hidden_data, buffer
 
-    header_pixels = processed_image.ravel()[:16]
-    processed_pixels = processed_image.ravel()[16:]
+    header_pixels, processed_pixels = get_header_and_body(processed_image)
 
     iterations = 0
     data = []
@@ -110,7 +109,7 @@ is_modified = None
 is_modifiable = None
 buffer = None
 
-decompress = Zlib().decompress
+decompress = Deflate.decompress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

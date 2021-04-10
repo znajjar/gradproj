@@ -15,9 +15,10 @@ parser.add_argument('source', help='The path of the original image.', type=str)
 args = parser.parse_args()
 
 ORIGINAL_IMAGE_NAME = args.source
-ORIGINAL_IMAGE_PATH = f'res/dataset-50/{ORIGINAL_IMAGE_NAME}'
+ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
-RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
+# RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
+RDH_ALGORITHMS = [scaling_algorithm]
 
 image_name, _ = os.path.splitext(ORIGINAL_IMAGE_NAME)
 

@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 
-from compress import Zlib
+from compress import Deflate
 from data_buffer import BoolDataBuffer
 from shared import *
 
@@ -84,8 +84,7 @@ def write_image():
 
 def main():
     global header_pixels, processed_pixels, binary_data_index, binary_data, peaks
-    header_pixels = cover_image.ravel()[:16].copy()
-    processed_pixels = cover_image.ravel()[16:].copy()
+    header_pixels, processed_pixels = get_header_and_body(cover_image)
     binary_data_index = 0
     binary_data = []
     peaks = []
@@ -122,7 +121,7 @@ iterations = None
 processed_image = None
 buffer = None
 
-compress = Zlib().compress
+compress = Deflate().compress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

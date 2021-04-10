@@ -2,6 +2,8 @@ import bz2
 import lzma
 import zlib
 
+import deflate
+
 
 class Lzma:
     @staticmethod
@@ -49,3 +51,16 @@ class NoCompress:
 
     def __str__(self):
         return 'no compression'
+
+
+class Deflate:
+    @staticmethod
+    def compress(data_bytes):
+        return deflate.gzip_compress(data_bytes, 12)
+
+    @staticmethod
+    def decompress(data_bytes):
+        return deflate.gzip_decompress(data_bytes)
+
+    def __str__(self):
+        return 'deflate'
