@@ -2,40 +2,30 @@ import argparse
 
 import cv2
 
-from compress import Zlib
+import shared
+from compress import Deflate
 from data_buffer import BoolDataBuffer
 from measure import Measure
 from shared import *
 
 
-def get_is_rounded(og, processed, factor):
-    processed_pixels_temp = processed / factor
-    processed_pixels_temp += EPS
-    processed_pixels_temp = np.floor(processed_pixels_temp)
-    return processed_pixels_temp + original_min - og
+def get_is_rounded(original, processed):
+    recovered = scale_to(processed, (np.min(original), np.max(original)))
+    return (recovered - original).astype(np.bool)
 
 
 def preprocess():
     global is_rounded, original_min, original_max, processed_pixels
+
+    original_pixels = processed_pixels.copy()
     original_min = np.min(processed_pixels)
     original_max = np.max(processed_pixels)
-    processed_pixels_og = processed_pixels.copy()
-    processed_pixels = processed_pixels.astype(np.longdouble)
-
-    processed_pixels -= original_min
-    shifted_max = np.max(processed_pixels)
     scaled_max = MAX_PIXEL_VALUE - 2 * iterations
-    scale_factor = scaled_max / shifted_max
-    processed_pixels *= scale_factor
-    processed_pixels -= EPS
-    processed_pixels = np.ceil(processed_pixels)
 
-    mapped_values = get_mapped_values(MAX_PIXEL_VALUE, scaled_max)
+    processed_pixels = scale_to(processed_pixels, scaled_max)
+    mapped_values = get_mapped_values(original_max - original_min, scaled_max)
+    is_rounded = get_is_rounded(original_pixels, processed_pixels)[np.in1d(processed_pixels, mapped_values)]
 
-    is_rounded = get_is_rounded(processed_pixels_og, processed_pixels, scale_factor)[np.in1d(processed_pixels, mapped_values)]
-    is_rounded = is_rounded.astype(np.bool)
-
-    processed_pixels = processed_pixels.astype(np.uint8)
     processed_pixels += iterations
 
 
@@ -49,25 +39,6 @@ def fill_buffer():
     parity = buffer.get_parity()
     buffer.next = Measure(buffer.next)
     buffer.add = Measure(buffer.add)
-
-
-def get_peaks_old():
-    hist, _ = np.histogram(processed_pixels, 256, [0, 256])
-    max_value = hist.max(initial=None)
-    max_value_indices = np.argwhere(hist == max_value)
-    max_peak = max_value_indices[0][0]
-    if max_value_indices.size > 1:
-        second_max_peak = max_value_indices[-1][0]
-    else:
-        hist[hist == max_value] = 0
-        max_value = hist.max(initial=None)
-        max_value_indices = np.argwhere(hist == max_value)
-        second_max_peak = max_value_indices[0][0]
-
-    if max_peak > second_max_peak:
-        max_peak, second_max_peak = second_max_peak, max_peak
-
-    return max_peak, second_max_peak
 
 
 def process():
@@ -111,10 +82,9 @@ def process():
         header_pixels[index] = set_lsb(header_pixels[index], binary_value)
 
 
-def assemble_image():
+def _assemble_image():
     global processed_image
-    pixels = np.append(header_pixels, processed_pixels)
-    processed_image = pixels.reshape(cover_image.shape)
+    processed_image = shared.assemble_image(header_pixels, processed_pixels, cover_image.shape)
 
 
 def write_image():
@@ -126,7 +96,7 @@ def write_image():
 
 
 def main():
-    global header_pixels, processed_pixels, binary_data_index, binary_data, peaks
+    global header_pixels, processed_pixels, binary_data_index, binary_data, peaks, processed_image
     header_pixels, processed_pixels = get_header_and_body(cover_image, 17)
     binary_data_index = 0
     binary_data = []
@@ -135,7 +105,7 @@ def main():
     preprocess()
     fill_buffer()
     process()
-    assemble_image()
+    processed_image = assemble_image(header_pixels, processed_pixels, cover_image.shape)
 
 
 def embed(image, data_to_be_hidden, iterations_count=32, compression=None) -> (np.ndarray, iter):
@@ -169,7 +139,7 @@ original_max = None
 
 parity = None
 
-compress = Zlib.compress
+compress = Deflate.compress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

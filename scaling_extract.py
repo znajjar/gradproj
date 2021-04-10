@@ -2,9 +2,10 @@ import argparse
 
 import cv2
 
-from compress import Zlib
+from compress import Deflate
 from data_buffer import BoolDataBuffer
 from shared import *
+import shared
 
 
 def get_peaks(peaks):
@@ -55,27 +56,21 @@ def process_data():
 
 
 def recover_image():
-    global processed_pixels
-    processed_pixels = processed_pixels.astype(np.float64)
+    global processed_pixels, recovered_pixels
     processed_pixels -= iterations
-    shifted_max = original_max - original_min
-    scaled_max = MAX_PIXEL_VALUE - 2 * iterations
-    scale_factor = scaled_max / MAX_PIXEL_VALUE
+    scaled_max = np.max(processed_pixels)
 
-    mapped_values = get_mapped_values(MAX_PIXEL_VALUE, scaled_max)
+    mapped_values = get_mapped_values(original_max - original_min, scaled_max)
     mapped_values = np.in1d(processed_pixels, mapped_values)
 
-    processed_pixels /= scale_factor
-    processed_pixels = np.round(processed_pixels, 7)
-    processed_pixels = np.floor(processed_pixels).astype(np.uint8)
-    processed_pixels[mapped_values] -= is_rounded[:len(processed_pixels[mapped_values])]
-    processed_pixels += original_min
+    recovered_pixels = scale_to(processed_pixels, original_max - original_min)
+    recovered_pixels[mapped_values] -= is_rounded[:np.count_nonzero(mapped_values)]
+    recovered_pixels += original_min
 
 
-def assemble_image():
+def _assemble_image():
     global cover_image
-    pixels = np.append(header_pixels, processed_pixels)
-    cover_image = pixels.reshape(processed_image.shape)
+    cover_image = shared.assemble_image(header_pixels, processed_pixels, processed_image.shape)
 
 
 def write_image():
@@ -84,7 +79,7 @@ def write_image():
 
 def main():
     global header_pixels, processed_pixels, header_pixels, processed_pixels, \
-        iterations, data, hidden_data, buffer
+        iterations, data, hidden_data, buffer, cover_image
 
     header_pixels, processed_pixels = get_header_and_body(processed_image, 17)
 
@@ -97,7 +92,7 @@ def main():
     process()
     process_data()
     recover_image()
-    assemble_image()
+    cover_image = assemble_image(header_pixels, recovered_pixels, processed_image.shape)
 
 
 def extract(image, decompression=None):
@@ -111,6 +106,7 @@ def extract(image, decompression=None):
 
 header_pixels = None
 processed_pixels = None
+recovered_pixels = None
 
 processed_image = None
 cover_image = None
@@ -124,7 +120,7 @@ buffer = None
 original_min = None
 original_max = None
 
-decompress = Zlib.decompress
+decompress = Deflate.decompress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
