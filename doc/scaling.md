@@ -53,7 +53,8 @@ calculated by doing the following steps before adding L to image in the last ste
    corresponding value in the map.
 
 As long as the scale factor is bigger than or equal to 0.5, the map will only have values between [0, 1] so we can
-represent each pixel with only a single bit in the map while ensuring lossless recovery.
+represent each pixel with only a single bit in the map while ensuring lossless recovery.  
+It's worth mentioning that we also need to embed the original range of the cover image with the hidden data (original min and max values) to be able to recover the image.
 
 #### Reducing the Map Size
 
