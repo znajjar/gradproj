@@ -114,7 +114,7 @@ def embed(image, data_to_be_hidden, iterations_count=32, compression=None) -> (n
     hidden_data = data_to_be_hidden
     iterations = iterations_count
     if compression:
-        compress = compression
+        compress = compression.compress
     main()
     remaining_data = bits_to_bytes(buffer.next(-1))
     return processed_image, remaining_data

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.metrics import structural_similarity
 
+from compress import *
 from measure import Measure
 from rdh import *
 from shared import bits_to_bytes, read_image
@@ -18,9 +19,12 @@ ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
 # RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
-RDH_ALGORITHMS = [scaling_algorithm]
+RDH_ALGORITHMS = [scaling_algorithm, scaling_algorithm]
+ARGS = ((Zlib,), (Deflate, ))
+KWARGS = ({}, {})
 
-image_name, _ = os.path.splitext(ORIGINAL_IMAGE_NAME)
+path, name = os.path.split(ORIGINAL_IMAGE_NAME)
+image_name, _ = os.path.splitext(name)
 
 original_image = read_image(ORIGINAL_IMAGE_PATH)
 dims = original_image.shape
@@ -38,14 +42,14 @@ def plot(ys, labels, x_label, y_label, name):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
-    plt.savefig(f'plots/dataset-50/{name}.png')
+    plt.savefig(f'plots/{path}/{name}.png')
 
 
 ratios = []
 stds = []
 means = []
 ssids = []
-for rdh in RDH_ALGORITHMS:
+for rdh, args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWARGS):
     stopwatch = Measure()
     print('======================')
     print(rdh)
@@ -57,12 +61,12 @@ for rdh in RDH_ALGORITHMS:
     for iterations_count in range(1, rdh.limit + 1):
         print(f'{iterations_count} iterations:')
 
-        processed_image, remaining_data = Measure(rdh.embed, 'embedding', print_time=True)\
-            (original_image.copy(), data, iterations_count)
+        processed_image, remaining_data = Measure(rdh.embed, 'embedding', print_time=True) \
+            (original_image.copy(), data, iterations_count, *args, **kwargs)
         if rdh.extract:
             try:
                 recovered_image, extraction_iterations, extracted_data = \
-                    Measure(rdh.extract, 'extraction', print_time=True)(processed_image.copy())
+                    Measure(rdh.extract, 'extraction', print_time=True)(processed_image.copy(), *args, **kwargs)
                 is_successful = \
                     not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
                 hidden_data_size = len(extracted_data) * 8

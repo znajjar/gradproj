@@ -99,7 +99,7 @@ def extract(image, decompression=None):
     global processed_image, decompress
     processed_image = image
     if decompression:
-        decompress = decompression
+        decompress = decompression.decompress
     main()
     return cover_image, iterations, hidden_data
 
