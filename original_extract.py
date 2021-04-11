@@ -2,9 +2,9 @@ import argparse
 
 import cv2
 
-from compress import Deflate
-from data_buffer import BoolDataBuffer
-from shared import *
+from util.compress import Deflate
+from util.data_buffer import BoolDataBuffer
+from util.util import *
 
 
 def get_peaks(peaks):

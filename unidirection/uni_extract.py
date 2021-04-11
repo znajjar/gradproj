@@ -1,7 +1,7 @@
 import PIL.Image as Image
 
 from unidirection.configurations import *
-from data_buffer import BoolDataBuffer
+from util.data_buffer import BoolDataBuffer
 
 
 def imsave(filename, img):

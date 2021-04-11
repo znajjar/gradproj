@@ -8,13 +8,12 @@ import numpy as np
 
 COMPRESSED_DATA_LENGTH_BITS = 16
 MAX_PIXEL_VALUE = 255
-COMPRESSION_LEVEL = 9
 HEADER_SIZE = 17
 EPS = 0.00000005
 
 
 def integer_to_binary(number: int, bits=8):
-    return [x == '1' for x in format(number, f'0{bits}b')]
+    return np.array([x == '1' for x in format(number, f'0{bits}b')])
 
 
 def binary_to_string(binary):
@@ -51,30 +50,6 @@ def bytes_to_bits(buffer):
 
 def bits_to_bytes(buffer):
     return np.packbits(buffer).tobytes()
-
-
-def _compress(data_bits):
-    data_bytes = bits_to_bytes(data_bits)
-
-    compressor = lzma.LZMACompressor()
-    ret = compressor.compress(data_bytes)
-    ret += (compressor.flush())
-    return ret
-
-    # return zlib.compress(data_bytes, level=COMPRESSION_LEVEL)
-
-    # return bz2.compress(data_bytes)
-
-
-def decompress(compressed_data_bits):
-    data_bytes = bits_to_bytes(compressed_data_bits)
-
-    ret = lzma.LZMADecompressor().decompress(data_bytes)
-    return ret
-
-    # return zlib.decompress(data_bytes)
-
-    # return bz2.decompress(data_bytes)
 
 
 def get_header_and_body(image: np.ndarray, header_size: int = HEADER_SIZE) -> (np.ndarray, np.ndarray):

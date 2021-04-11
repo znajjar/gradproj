@@ -1,7 +1,7 @@
 import PIL.Image as Image
 
 from unidirection.configurations import *
-from shared import read_image
+from util.util import read_image
 
 
 def imsave(filename, img):

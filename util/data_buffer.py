@@ -32,6 +32,9 @@ class BoolDataBuffer:
             self._buffer = np.append(data, self._buffer[self._index:]).astype(np.bool)
             self._index = 0
 
+    def push(self, *args):
+        self._buffer = np.concatenate((self._buffer, *args))
+
     def set_parity(self, parity):
         self._parity = parity
 
@@ -46,3 +49,7 @@ class BoolDataBuffer:
 
     def __next__(self):
         return self.next()
+
+    def clear(self):
+        self._buffer = np.array([])
+        self._parity = False

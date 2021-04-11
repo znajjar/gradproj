@@ -2,10 +2,10 @@ import argparse
 
 import cv2
 
-from compress import Deflate
-from data_buffer import BoolDataBuffer
-from shared import *
-import shared
+from util.compress import deflate
+from util.data_buffer import BoolDataBuffer
+from util.util import *
+import util.util
 
 
 def get_peaks(peaks):
@@ -120,7 +120,7 @@ buffer = None
 original_min = None
 original_max = None
 
-decompress = Deflate.decompress
+decompress = deflate.decompress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

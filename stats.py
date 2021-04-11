@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.metrics import structural_similarity
 
-from compress import *
-from measure import Measure
-from rdh import *
-from shared import bits_to_bytes, read_image
+from util.compress import *
+from util.measure import Measure
+from util.rdh import *
+from util.util import bits_to_bytes, read_image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source', help='The path of the original image.', type=str)
@@ -20,7 +20,7 @@ ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
 # RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
 RDH_ALGORITHMS = [scaling_algorithm, scaling_algorithm]
-ARGS = ((Zlib,), (Deflate, ))
+ARGS = ((no_compress,), (deflate, ))
 KWARGS = ({}, {})
 
 path, name = os.path.split(ORIGINAL_IMAGE_NAME)

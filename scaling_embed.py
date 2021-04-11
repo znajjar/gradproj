@@ -2,11 +2,11 @@ import argparse
 
 import cv2
 
-import shared
-from compress import Deflate
-from data_buffer import BoolDataBuffer
-from measure import Measure
-from shared import *
+from util import util
+from util.compress import deflate
+from util.data_buffer import BoolDataBuffer
+from util.measure import Measure
+from util.util import *
 
 
 def get_is_rounded(original, processed):
@@ -84,7 +84,7 @@ def process():
 
 def _assemble_image():
     global processed_image
-    processed_image = shared.assemble_image(header_pixels, processed_pixels, cover_image.shape)
+    processed_image = util.assemble_image(header_pixels, processed_pixels, cover_image.shape)
 
 
 def write_image():
@@ -139,7 +139,7 @@ original_max = None
 
 parity = None
 
-compress = Deflate.compress
+compress = deflate.compress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

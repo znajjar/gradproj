@@ -2,9 +2,9 @@ import argparse
 
 import cv2
 
-from compress import Deflate
-from data_buffer import BoolDataBuffer
-from shared import *
+from util.compress import deflate
+from util.data_buffer import BoolDataBuffer
+from util.util import *
 
 
 def preprocess():
@@ -83,11 +83,8 @@ def write_image():
 
 
 def main():
-    global header_pixels, processed_pixels, binary_data_index, binary_data, peaks
+    global header_pixels, processed_pixels
     header_pixels, processed_pixels = get_header_and_body(cover_image)
-    binary_data_index = 0
-    binary_data = []
-    peaks = []
 
     preprocess()
     fill_buffer()
@@ -95,7 +92,7 @@ def main():
     assemble_image()
 
 
-def embed(image, data_to_be_hidden, iterations_count=32, compression=None) -> (np.ndarray, iter):
+def embed(image, data_to_be_hidden, iterations_count=32, compression=None) -> (np.ndarray, Iterable):
     global cover_image, hidden_data, iterations, compress
     cover_image = image
     hidden_data = data_to_be_hidden
@@ -103,7 +100,7 @@ def embed(image, data_to_be_hidden, iterations_count=32, compression=None) -> (n
     if compression:
         compress = compression
     main()
-    remaining_data = binary_data[binary_data_index:]
+    remaining_data = buffer.next(-1)
     return processed_image, remaining_data
 
 
@@ -121,7 +118,7 @@ iterations = None
 processed_image = None
 buffer = None
 
-compress = Deflate().compress
+compress = deflate.compress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
