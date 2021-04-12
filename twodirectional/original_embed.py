@@ -5,6 +5,9 @@ from util.util import *
 
 
 class OriginalEmbedder:
+    _ITERATIONS_LIMIT = 64
+    _ITERATIONS_LIMIT_EXCEEDED_ERROR = 'Exceeded the max number of iterations allowed.'
+
     def __init__(self, cover_image: np.ndarray, hidden_data: Iterable, compression: CompressionAlgorithm = deflate):
         self._cover_image = cover_image
         self._hidden_data = bytes_to_bits(hidden_data)
@@ -15,8 +18,8 @@ class OriginalEmbedder:
         self._buffer = BoolDataBuffer()
 
     def embed(self, iterations):
-        if iterations > 64:
-            raise TypeError
+        if iterations > self._ITERATIONS_LIMIT:
+            raise ValueError(self._ITERATIONS_LIMIT_EXCEEDED_ERROR)
         self._header_pixels, self._processed_pixels = get_header_and_body(self._cover_image)
         is_modified = self._preprocess(iterations)
         self._fill_buffer(is_modified)
@@ -42,7 +45,10 @@ class OriginalEmbedder:
         is_modified_compressed = self._compress(bits_to_bytes(is_modified))
         is_modified_size_bits = integer_to_binary(len(is_modified_compressed), COMPRESSED_DATA_LENGTH_BITS)
         is_modified_bits = bytes_to_bits(is_modified_compressed)
-        self._buffer = BoolDataBuffer(is_modified_size_bits, is_modified_bits, self._hidden_data)
+        self._buffer = BoolDataBuffer(*self._get_overhead(), is_modified_size_bits, is_modified_bits, self._hidden_data)
+
+    def _get_overhead(self):
+        return get_lsb(self._header_pixels),
 
     def _process(self, iterations):
         previous_left_peaks = previous_right_peaks = 0
@@ -52,8 +58,6 @@ class OriginalEmbedder:
             ret.extend(integer_to_binary(previous_left_peaks))
             ret.extend(integer_to_binary(previous_right_peaks))
             return ret
-
-        self._buffer.add(get_lsb(self._header_pixels))
 
         while iterations:
             iterations -= 1
@@ -90,13 +94,27 @@ class OriginalEmbedder:
         return self
 
     def __next__(self):
-        if not hasattr(self, 'index'):
+        if not hasattr(self, '_index'):
+            self._index = 0
+
+        try:
+            self._index += 1
+            print(self._index)
+            return self.embed(self._index)
+        except ValueError:
             self.index = 0
+            raise StopIteration
 
-        if self.index < 64:
-            self.index += 1
-            print(self.index)
-            return self.embed(self.index)
 
-        self.index = 0
-        raise StopIteration
+if __name__ == '__main__':
+    import cv2
+
+    image = read_image('res/f-16.png')
+    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+    embedder = OriginalEmbedder(image, data)
+
+    embedded, hidden_data_size = embedder.embed(64)
+    cv2.imwrite('out/embedded.png', embedded)
+
+    for it in embedder:
+        print(it)

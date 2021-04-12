@@ -1,4 +1,3 @@
-import lzma
 from collections.abc import Iterable
 from typing import Union
 
