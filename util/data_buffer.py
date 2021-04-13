@@ -50,6 +50,9 @@ class BoolDataBuffer:
     def __next__(self):
         return self.next()
 
+    def __getitem__(self, item):
+        return self._buffer[item]
+
     def clear(self):
         self._buffer = np.array([])
         self._parity = False

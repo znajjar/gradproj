@@ -1,4 +1,4 @@
-from original_embed import OriginalEmbedder
+from original import OriginalEmbedder
 from util.util import *
 
 
@@ -42,7 +42,7 @@ class ScalingEmbedder(OriginalEmbedder):
 if __name__ == '__main__':
     import cv2
 
-    image = read_image('res/f-16.png')
+    image = read_image('res/dataset-50/43.gif')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     embedder = ScalingEmbedder(image, data)
 

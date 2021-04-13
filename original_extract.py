@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 
-from util.compress import Deflate
+from util.compress import deflate
 from util.data_buffer import BoolDataBuffer
 from util.util import *
 
@@ -109,7 +109,7 @@ is_modified = None
 is_modifiable = None
 buffer = None
 
-decompress = Deflate.decompress
+decompress = deflate.decompress
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
