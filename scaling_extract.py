@@ -70,7 +70,7 @@ def recover_image():
 
 def _assemble_image():
     global cover_image
-    cover_image = shared.assemble_image(header_pixels, processed_pixels, processed_image.shape)
+    cover_image = util.assemble_image(header_pixels, processed_pixels, processed_image.shape)
 
 
 def write_image():

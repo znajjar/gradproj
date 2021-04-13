@@ -1,4 +1,4 @@
-from original import OriginalEmbedder
+from twodirectional.original import *
 from util.util import *
 
 
@@ -37,6 +37,35 @@ class ScalingEmbedder(OriginalEmbedder):
     def get_is_rounded(original, processed):
         recovered = scale_to(processed, (np.min(original), np.max(original)))
         return recovered - original
+
+
+class ScalingExtractor(OriginalExtractor):
+    def _process_data(self, iterations):
+        for index, value in np.ndenumerate(self._header_pixels):
+            self._header_pixels[index] = set_lsb(value, self._buffer.next())
+
+        self._original_min = binary_to_integer(self._buffer.next(8))
+        self._original_max = binary_to_integer(self._buffer.next(8))
+
+        is_modified_size_bits = self._buffer.next(COMPRESSED_DATA_LENGTH_BITS)
+        is_modified_compressed_size = binary_to_integer(is_modified_size_bits)
+        is_modified_compressed = self._buffer.next(is_modified_compressed_size * 8)
+        is_modified_minimized_bytes = self._decompress(bits_to_bytes(is_modified_compressed))
+        is_rounded = bytes_to_bits(is_modified_minimized_bytes)[:self._processed_pixels.size]
+        hidden_data = bits_to_bytes(self._buffer.next(-1))
+        return hidden_data, is_rounded
+
+    def _recover_image(self, iterations, is_rounded):
+        self._processed_pixels -= iterations
+        scaled_max = np.max(self._processed_pixels)
+
+        mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
+        mapped_values = np.in1d(self._processed_pixels, mapped_values)
+
+        recovered_pixels = scale_to(self._processed_pixels, self._original_max - self._original_min)
+        recovered_pixels[mapped_values] -= is_rounded[:np.count_nonzero(mapped_values)]
+        recovered_pixels += self._original_min
+        self._processed_pixels = recovered_pixels
 
 
 if __name__ == '__main__':

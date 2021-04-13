@@ -7,7 +7,6 @@ import numpy as np
 from skimage.metrics import structural_similarity
 
 from rdh_algorithm import *
-from util.compress import *
 from util.measure import Measure
 from util.util import bits_to_bytes, read_image
 
@@ -18,10 +17,9 @@ args = parser.parse_args()
 ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
-# RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, unidirectional_algorithm, bp_unidirectional_algorithm]
-RDH_ALGORITHMS = [original_algorithm]
-ARGS = ((no_compress,), )
-KWARGS = ({}, )
+RDH_ALGORITHMS = [scaling_algorithm, original_algorithm]
+ARGS = ((), (), )
+KWARGS = ({}, {}, )
 
 path, name = os.path.split(ORIGINAL_IMAGE_NAME)
 image_name, _ = os.path.splitext(name)
@@ -64,8 +62,8 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
     for embedded_image, iterations_count, _ in embedder:
         print(f'{iterations_count} iterations:')
 
+        recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
         try:
-            recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
             # recovered_image, extraction_iterations, extracted_data = \
             #     Measure(rdh.extract, 'extraction', print_time=True)(embedded_image.copy(), *args, **kwargs)
             is_successful = \
