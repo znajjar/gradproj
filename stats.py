@@ -46,7 +46,7 @@ def plot(ys, labels, x_label, y_label, name):
 ratios = []
 stds = []
 means = []
-ssids = []
+ssims = []
 for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWARGS):
     stopwatch = Measure()
     print('======================')
@@ -55,7 +55,7 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
     algorithm_rations = []
     algorithm_stds = []
     algorithm_means = []
-    algorithm_ssids = []
+    algorithm_ssims = []
     embedder = embedder(original_image.copy(), data)
     extractor = extractor()
 
@@ -82,7 +82,7 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
             algorithm_rations.append(hidden_data_size / original_image.size)
             algorithm_stds.append(np.std(embedded_image, dtype=np.float64))
             algorithm_means.append(np.abs(np.mean(original_image) - np.mean(embedded_image, dtype=np.float64)))
-            algorithm_ssids.append(structural_similarity(original_image, embedded_image))
+            algorithm_ssims.append(structural_similarity(original_image, embedded_image))
         else:
             print('extraction failed')
             if recovered_image is not None:
@@ -95,7 +95,7 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
     ratios.append(algorithm_rations)
     stds.append(algorithm_stds)
     means.append(algorithm_means)
-    ssids.append(algorithm_ssids)
+    ssims.append(algorithm_ssims)
 
 algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
 # algorithms_labels.append(unidirectional_algorithm.label)
@@ -103,4 +103,4 @@ algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
 plot(ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', f'rate_{image_name}')
 plot(stds, algorithms_labels, 'Iterations', 'Standard Deviation', f'std_{image_name}')
 plot(means, algorithms_labels, 'Iterations', 'Mean Brightness', f'mean_{image_name}')
-plot(ssids, algorithms_labels, 'Iterations', 'Structural Similarity (SSID)', f'ssid_{image_name}')
+plot(ssims, algorithms_labels, 'Iterations', 'Structural Similarity (ssim)', f'ssim_{image_name}')
