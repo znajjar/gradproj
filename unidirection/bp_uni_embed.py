@@ -12,7 +12,7 @@ def imsave(filename, img):
 def get_hist(img):
     return np.bincount(np.array(img).flatten(), minlength=L)
 
-
+# Filter the results that cover the overhead then take the one with the minimum change to brighness
 def get_peaks_from_hist(hist):
     global img, brightness
 
