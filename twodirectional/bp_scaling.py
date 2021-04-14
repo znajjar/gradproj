@@ -1,4 +1,4 @@
-from scaling import ScalingEmbedder
+from twodirectional.scaling import ScalingEmbedder
 from util.compress import *
 from util.util import *
 
@@ -8,6 +8,10 @@ class BPScalingEmbedder(ScalingEmbedder):
         ScalingEmbedder.__init__(self, cover_image, hidden_data, compression)
         self._original_brightness = np.mean(cover_image)
         self._iteration = 0
+
+    def embed(self, iterations):
+        self._iteration = 0
+        return super(BPScalingEmbedder, self).embed(iterations)
 
     def _get_peaks(self):
         self._hist = np.bincount(self._processed_pixels, minlength=MAX_PIXEL_VALUE + 1)
@@ -36,7 +40,7 @@ class BPScalingEmbedder(ScalingEmbedder):
                     best_right_peak = right_peak
                     smallest_distance = new_distance
 
-        print(best_left_peak, best_right_peak, smallest_distance)
+        # print(best_left_peak, best_right_peak, smallest_distance)
         return best_left_peak, best_right_peak
 
     def _get_brightness_distance(self, left_peak: int, right_peak: int):
@@ -52,7 +56,8 @@ class BPScalingEmbedder(ScalingEmbedder):
 
     def _get_new_brightness(self, left_peak: int, right_peak: int, ones_in_left: int, ones_in_right: int):
         return (self._weighted_cum_hist[MAX_PIXEL_VALUE] - self._cum_hist[left_peak - 1] +
-                (self._cum_hist[MAX_PIXEL_VALUE] - self._cum_hist[right_peak]) - ones_in_left + ones_in_right) / self._cum_hist[MAX_PIXEL_VALUE]
+                (self._cum_hist[MAX_PIXEL_VALUE] - self._cum_hist[right_peak]) - ones_in_left + ones_in_right) / \
+               self._cum_hist[MAX_PIXEL_VALUE]
 
 
 if __name__ == '__main__':
