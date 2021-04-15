@@ -79,7 +79,7 @@ class UnidirectionEmbedder:
         return np.bincount(np.array(self._body_pixels).flatten(), minlength=L)
 
     def _get_overhead(self, P_L, P_H, location_map):
-        compressed_map = bytes_to_bits(self._compress(location_map))
+        compressed_map = bytes_to_bits(self._compress(bits_to_bytes(location_map)))
         flag = len(location_map) > len(compressed_map)
 
         if flag:
@@ -180,7 +180,7 @@ class UnidirectionExtractor:
         is_map_compressed = self._buffer.next(FLAG_BIT)[0]
         if is_map_compressed:
             map_size = binary_to_integer(self._buffer.next(COMPRESSED_DATA_LENGTH_BITS))
-            return bytes_to_bits(self._decompress(self._buffer.next(map_size)))
+            return bytes_to_bits(self._decompress(bits_to_bytes(self._buffer.next(map_size))))
         else:
             return self._buffer.next(np.sum(self._body_pixels == P_L))
 
