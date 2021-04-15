@@ -17,9 +17,9 @@ args = parser.parse_args()
 ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = 'res/data.txt'
-RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, bp_scaling_algorithm]
-ARGS = ((), (), ())
-KWARGS = ({}, {}, {})
+RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, bp_scaling_algorithm, uni_algorithm, bp_uni_algorithm]
+ARGS = ((), (), (), (), ())
+KWARGS = ({}, {}, {}, {}, {})
 
 path, name = os.path.split(ORIGINAL_IMAGE_NAME)
 image_name, _ = os.path.splitext(name)

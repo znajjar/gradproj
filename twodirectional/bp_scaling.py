@@ -1,4 +1,5 @@
-from twodirectional.scaling import ScalingEmbedder
+from twodirectional.scaling import ScalingEmbedder, ScalingExtractor
+from twodirectional.configurations import BRIGHTNESS_THRESHOLD
 from util.compress import *
 from util.util import *
 
@@ -31,14 +32,18 @@ class BPScalingEmbedder(ScalingEmbedder):
         best_left_peak = 0
         best_right_peak = 0
         smallest_distance = MAX_PIXEL_VALUE
+        largest_capacity = 0
         for left_peak in candidates_left:
             candidates_right = candidates_left[candidates_left > left_peak]
             for right_peak in candidates_right:
                 new_distance = self._get_brightness_distance(left_peak, right_peak)
-                if new_distance < smallest_distance:
+                new_capacity = self._get_capacity(left_peak, right_peak)
+                if new_distance < BRIGHTNESS_THRESHOLD and largest_capacity < new_capacity or \
+                        BRIGHTNESS_THRESHOLD < new_distance < smallest_distance:
                     best_left_peak = left_peak
                     best_right_peak = right_peak
                     smallest_distance = new_distance
+                    largest_capacity = new_capacity
 
         # print(best_left_peak, best_right_peak, smallest_distance)
         return best_left_peak, best_right_peak
@@ -58,6 +63,13 @@ class BPScalingEmbedder(ScalingEmbedder):
         return (self._weighted_cum_hist[MAX_PIXEL_VALUE] - self._cum_hist[left_peak - 1] +
                 (self._cum_hist[MAX_PIXEL_VALUE] - self._cum_hist[right_peak]) - ones_in_left + ones_in_right) / \
                self._cum_hist[MAX_PIXEL_VALUE]
+
+    def _get_capacity(self, left_peak: int, right_peak: int):
+        return self._hist[left_peak] + self._hist[right_peak]
+
+
+class BPScalingExtractor(ScalingExtractor):
+    pass
 
 
 if __name__ == '__main__':

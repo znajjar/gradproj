@@ -125,3 +125,45 @@ def show_hist(image):
 def assemble_image(header, pixels, shape):
     image = np.append(header, pixels)
     return image.reshape(shape)
+
+
+def get_minimum_closest_right(hist, pixel_value):
+    hist_right = (np.roll(hist, 1) + hist)[pixel_value + 2:]
+    candidates = np.flatnonzero(hist_right == hist_right.min()) + pixel_value + 2
+    candidates = candidates[np.flatnonzero(hist[candidates - 1] == hist[candidates - 1].min())]
+    return candidates[np.abs(candidates - pixel_value).argmin()]
+
+
+def get_minimum_closest_left(hist, pixel_value):
+    hist_left = (np.roll(hist, -1) + hist)[:pixel_value - 2 + 1]
+    candidates = np.flatnonzero(hist_left == hist_left.min())
+    candidates = candidates[np.flatnonzero(hist[candidates + 1] == hist[candidates + 1].min())]
+    return candidates[np.abs(candidates - pixel_value).argmin()]
+
+
+def get_minimum_closest(hist, pixel_value):
+    closest_right = get_minimum_closest_right(hist, pixel_value)
+    closest_left = get_minimum_closest_left(hist, pixel_value)
+    min_right_value = hist[closest_right] + hist[closest_right - 1]
+    min_left_value = hist[closest_left] + hist[closest_left + 1]
+    if min_right_value < min_left_value:
+        return closest_right
+    elif min_right_value > min_left_value:
+        return closest_left
+    else:
+        if abs(closest_right - pixel_value) < abs(closest_left - pixel_value):
+            return closest_right
+        else:
+            return closest_left
+
+
+def get_shift_direction(P_L, P_H):
+    if P_L < P_H:
+        return -1
+    else:
+        return 1
+
+
+def get_peaks_from_header(header_pixels, peak_size: int = 8):
+    LSB = get_lsb(header_pixels)
+    return binary_to_integer(LSB[0:peak_size]), binary_to_integer(LSB[peak_size:2 * peak_size])
