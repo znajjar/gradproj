@@ -37,7 +37,7 @@ class UnidirectionEmbedder:
         self._embed_in_LSB()
 
         embedded_image = assemble_image(self._header_pixels, self._body_pixels, self._cover_image.shape)
-        return embedded_image, iterations, pure_embedded_data
+        return embedded_image, iteration, pure_embedded_data
 
     def _initialize(self):
         self._header_pixels, self._body_pixels = get_header_and_body(self._cover_image, HEADER_PIXELS)
@@ -45,8 +45,6 @@ class UnidirectionEmbedder:
 
         self._old_P_L = 0
         self._old_P_H = 0
-
-        # self._buffer.add(self._get_header_LSBs())
 
     def _get_header_LSBs(self):
         return np.array(get_lsb(self._header_pixels), dtype=bool)
@@ -80,7 +78,7 @@ class UnidirectionEmbedder:
 
     def _get_overhead(self, P_L, P_H, location_map):
         compressed_map = bytes_to_bits(self._compress(bits_to_bytes(location_map)))
-        flag = len(location_map) > len(compressed_map)
+        flag = len(location_map) > len(compressed_map) + COMPRESSED_DATA_LENGTH_BITS
 
         if flag:
             return np.concatenate([
