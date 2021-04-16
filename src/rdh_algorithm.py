@@ -1,10 +1,8 @@
 from collections import namedtuple
 
-from twodirectional import bp_scaling
-from twodirectional import original
-from twodirectional import scaling
-from unidirection import uni_original
+from src.bidirectional import bp_scaling, scaling, original
 from unidirection import bp_uni
+from unidirection import uni_original
 
 RdhAlgorithm = namedtuple('RdhAlgorithm', ('embedder', 'extractor', 'label'))
 

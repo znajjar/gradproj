@@ -1,5 +1,5 @@
-from twodirectional.original import *
-from util.util import *
+from src.bidirectional.original import *
+from src.util.util import *
 
 
 class ScalingEmbedder(OriginalEmbedder):

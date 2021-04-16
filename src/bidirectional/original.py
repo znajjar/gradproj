@@ -1,6 +1,4 @@
-from util.compress import CompressionAlgorithm, deflate
-from util.data_buffer import BoolDataBuffer
-from util.util import *
+from util import *
 
 
 class OriginalEmbedder:

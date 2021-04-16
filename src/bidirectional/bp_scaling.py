@@ -1,7 +1,6 @@
-from twodirectional.scaling import ScalingEmbedder, ScalingExtractor
-from twodirectional.configurations import BRIGHTNESS_THRESHOLD
-from util.compress import *
-from util.util import *
+from util import *
+from .configurations import BRIGHTNESS_THRESHOLD
+from .scaling import ScalingEmbedder, ScalingExtractor
 
 
 class BPScalingEmbedder(ScalingEmbedder):

@@ -1,8 +1,6 @@
-from unidirection.configurations import *
-from unidirection.uni_original import UnidirectionEmbedder, UnidirectionExtractor
-from util.compress import CompressionAlgorithm, deflate
-from util.util import *
-import deflate as de
+from util import *
+from .configurations import *
+from .uni_original import UnidirectionEmbedder, UnidirectionExtractor
 
 
 class BPUnidirectionEmbedder(UnidirectionEmbedder):
@@ -114,22 +112,3 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
 class BPUnidirectionExtractor(UnidirectionExtractor):
     pass
-
-
-if __name__ == '__main__':
-    image = read_image('res/dataset-50/6.gif')
-    np.random.seed(2115)
-    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = ImprovedBPUnidirectionEmbedder(image, data)
-
-    embedded_image, iterations, hidden_data_size = embedder.embed(1000)
-
-    print(iterations)
-    print(hidden_data_size)
-    print(np.mean(image))
-    print(np.mean(embedded_image))
-    print(np.std(image))
-    print(np.std(embedded_image))
-    show_hist(embedded_image)
-
-    Image.fromarray(embedded_image).save('out/bp_uni_old.png')
