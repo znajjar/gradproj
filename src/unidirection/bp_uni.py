@@ -1,6 +1,6 @@
-from util import *
 from .configurations import *
 from .uni_original import UnidirectionEmbedder, UnidirectionExtractor
+from ..util import *
 
 
 class BPUnidirectionEmbedder(UnidirectionEmbedder):
@@ -79,7 +79,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         # compressed_map = bytes_to_bits(de.gzip_compress(location_map, 1))
         # overhead_size = 17 + min(COMPRESSED_DATA_LENGTH_BITS + len(compressed_map), len(location_map))
         # return self._hist[P_H] - overhead_size
-        return self._hist[P_H] - self._hist[P_L] - self._hist[P_L - get_shift_direction(P_L, P_H)]
+        return self._hist[P_H] - self._hist[P_L] - self._hist[P_L - get_shift_direction(P_L, P_H)] - 17
 
     def _get_best_shift_right(self, best_P_L, best_P_H):
         candidates = self._get_top_candidates()
