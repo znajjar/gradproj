@@ -37,7 +37,7 @@ class UnidirectionEmbedder:
         self._embed_in_LSB()
 
         embedded_image = assemble_image(self._header_pixels, self._body_pixels, self._cover_image.shape)
-        return embedded_image, iteration, pure_embedded_data
+        return embedded_image, iterations, pure_embedded_data
 
     def _initialize(self):
         self._header_pixels, self._body_pixels = get_header_and_body(self._cover_image, HEADER_PIXELS)
