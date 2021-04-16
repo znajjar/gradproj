@@ -1,11 +1,8 @@
-from unidirection.configurations import *
-from util.compress import CompressionAlgorithm, deflate
-from util.data_buffer import BoolDataBuffer
-from util.util import *
+from util import *
+from .configurations import *
 
 
 class UnidirectionEmbedder:
-
     def __init__(self, cover_image: np.ndarray, hidden_data: Iterable, compression: CompressionAlgorithm = deflate):
         self._cover_image = cover_image
         self._hidden_data = bytes_to_bits(hidden_data)

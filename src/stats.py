@@ -7,8 +7,8 @@ import numpy as np
 from skimage.metrics import structural_similarity
 
 from rdh_algorithm import *
+from src.util.util import bits_to_bytes, read_image
 from util.measure import Measure
-from util.util import bits_to_bytes, read_image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source', help='The path of the original image.', type=str)
@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
-DATA_PATH = 'res/data.txt'
+DATA_PATH = '/res/data.txt'
 RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, bp_scaling_algorithm, uni_algorithm, bp_uni_algorithm]
 ARGS = ((), (), (), (), ())
 KWARGS = ({}, {}, {}, {}, {})

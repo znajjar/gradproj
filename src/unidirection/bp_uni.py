@@ -1,7 +1,6 @@
-from unidirection.configurations import *
-from unidirection.uni_original import UnidirectionEmbedder, UnidirectionExtractor
-from util.compress import CompressionAlgorithm, deflate
-from util.util import *
+from util import *
+from .configurations import *
+from .uni_original import UnidirectionEmbedder, UnidirectionExtractor
 
 
 class BPUnidirectionEmbedder(UnidirectionEmbedder):
