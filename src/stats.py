@@ -65,6 +65,7 @@ for embedder, extractor, label in RDH_ALGORITHMS:
     algorithm_ssims = []
     embedder = embedder(original_image.copy(), data)
     extractor = extractor()
+    iterations_count = 0
 
     for embedded_image, iterations_count, _ in embedder:
         print(f'{iterations_count} iterations:')
@@ -97,14 +98,17 @@ for embedder, extractor, label in RDH_ALGORITHMS:
         print('total time:', stopwatch)
         print('----------------------')
 
-    write_data(label, filename, ratio=algorithm_rations, std=algorithm_stds, mean=algorithm_means, ssim=algorithm_ssims)
+    write_data(label, filename, iterations_count,
+               ratio=algorithm_rations,
+               std=algorithm_stds,
+               mean=algorithm_means,
+               ssim=algorithm_ssims)
     ratios.append(algorithm_rations)
     stds.append(algorithm_stds)
     means.append(algorithm_means)
     ssims.append(algorithm_ssims)
 
 algorithms_labels = [algo.label for algo in RDH_ALGORITHMS]
-# algorithms_labels.append(unidirectional_algorithm.label)
 
 plot(ratios, algorithms_labels, 'Iterations', 'Pure hiding ratio (bpp)', f'rate_{image_name}')
 plot(stds, algorithms_labels, 'Iterations', 'Standard Deviation', f'std_{image_name}')

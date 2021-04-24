@@ -6,8 +6,8 @@ from dateutil.parser import parse as parse_date
 DATA_PATH = 'runs'
 
 
-# write_data('uni', mean=[1, 2, 3], std=[3, 4, 5])
-def write_data(algorithm_name, filename, **data):
+# write_data('uni', 'a.png', 3, mean=[1, 2, 3], std=[3, 4, 5])
+def write_data(algorithm_name: str, filename: str, iterations_count: int, **data):
     file_path = f'{DATA_PATH}/{algorithm_name}.json'
     with open(file_path, mode='a+', encoding='utf-8') as data_file:
         data_file.seek(0)
@@ -24,6 +24,7 @@ def write_data(algorithm_name, filename, **data):
     algorithm_data['runs'].append({
         'filename': filename,
         'date': datetime.datetime.utcnow().isoformat(),
+        'iterations': iterations_count,
         **{label: serialize_data(data) for label, data in data.items()},
     })
 
@@ -46,7 +47,7 @@ def read_data(algorithm_name):
             for label, value in run_data.items():
                 if label == 'date':
                     run_data[label] = parse_date(value)
-                elif label != 'filename':
+                elif label not in ('filename', 'iterations'):
                     run_data[label] = deserialize_data(value)
         return data
 
