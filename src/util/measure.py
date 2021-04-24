@@ -42,4 +42,4 @@ class Measure:
         return self._total_time
 
     def __str__(self):
-        return self.check().__round__(self.precision).__str__() + ' seconds'
+        return f'{self.check():.{self.precision}f} seconds'

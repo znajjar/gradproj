@@ -1,5 +1,6 @@
 import argparse
 import os
+import traceback
 
 import cv2
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ from skimage.metrics import structural_similarity
 from rdh_algorithm import *
 from src.util.util import bits_to_bytes, read_image
 from util.measure import Measure
+from write_data import write_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source', help='The path of the original image.', type=str)
@@ -17,12 +19,17 @@ args = parser.parse_args()
 ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = '/res/data.txt'
-RDH_ALGORITHMS = [original_algorithm, scaling_algorithm, bp_scaling_algorithm, uni_algorithm, bp_uni_algorithm2, bp_uni_algorithm]
-ARGS = ((), (), (), (), (), ())
-KWARGS = ({}, {}, {}, {}, {}, {})
+RDH_ALGORITHMS = [
+    # original_algorithm,
+    # scaling_algorithm,
+    # bp_scaling_algorithm,
+    uni_algorithm,
+    bp_uni_algorithm_improved,
+    bp_uni_algorithm,
+]
 
-path, name = os.path.split(ORIGINAL_IMAGE_NAME)
-image_name, _ = os.path.splitext(name)
+path, filename = os.path.split(ORIGINAL_IMAGE_NAME)
+image_name, _ = os.path.splitext(filename)
 
 original_image = read_image(ORIGINAL_IMAGE_PATH)
 dims = original_image.shape
@@ -47,7 +54,7 @@ ratios = []
 stds = []
 means = []
 ssims = []
-for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWARGS):
+for embedder, extractor, label in RDH_ALGORITHMS:
     stopwatch = Measure()
     print('======================')
     print(label)
@@ -62,15 +69,13 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
     for embedded_image, iterations_count, _ in embedder:
         print(f'{iterations_count} iterations:')
 
-        recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
         try:
-            # recovered_image, extraction_iterations, extracted_data = \
-            #     Measure(rdh.extract, 'extraction', print_time=True)(embedded_image.copy(), *args, **kwargs)
+            recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
             is_successful = \
                 not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
             hidden_data_size = len(extracted_data) * 8
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc()
             is_successful = False
             hidden_data_size = 0
             recovered_image = None
@@ -92,6 +97,7 @@ for (embedder, extractor, label), args, kwargs in zip(RDH_ALGORITHMS, ARGS, KWAR
         print('total time:', stopwatch)
         print('----------------------')
 
+    write_data(label, filename, ratio=algorithm_rations, std=algorithm_stds, mean=algorithm_means, ssim=algorithm_ssims)
     ratios.append(algorithm_rations)
     stds.append(algorithm_stds)
     means.append(algorithm_means)

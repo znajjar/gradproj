@@ -16,25 +16,32 @@ class UnidirectionEmbedder:
         self._old_P_H = None
 
     def embed(self, iterations):
+        self._initialize()
+        return self._process(iterations)
+
+    def _process(self, iterations=1):
         iteration = 0
         pure_embedded_data = 0
-        self._initialize()
 
-        P_L, P_H, extra_space = self._fill_buffer()
+        P_L, P_H = self._get_peaks()
+        buffer_data, extra_space = self._get_buffer_data(P_L, P_H)
         extra_space -= HEADER_PIXELS
         while extra_space >= 0 and iteration < iterations:
+            self._fill_buffer(buffer_data)
             pure_embedded_data += extra_space
             self._shift_histogram(P_L, P_H)
 
             self._old_P_L = P_L
             self._old_P_H = P_H
-            P_L, P_H, extra_space = self._fill_buffer()
             iteration += 1
+            P_L, P_H = self._get_peaks()
+            buffer_data, extra_space = self._get_buffer_data(P_L, P_H)
 
         self._embed_in_LSB()
 
         embedded_image = assemble_image(self._header_pixels, self._body_pixels, self._cover_image.shape)
-        return embedded_image, iterations, pure_embedded_data
+
+        return embedded_image, iteration, pure_embedded_data
 
     def _initialize(self):
         self._header_pixels, self._body_pixels = get_header_and_body(self._cover_image, HEADER_PIXELS)
@@ -46,12 +53,15 @@ class UnidirectionEmbedder:
     def _get_header_LSBs(self):
         return np.array(get_lsb(self._header_pixels), dtype=bool)
 
-    def _fill_buffer(self):
-        P_L, P_H = self._get_peaks()
+    def _get_buffer_data(self, P_L, P_H):
+
         location_map = self._get_location_map(P_L, P_H)
         overhead_data = self._get_overhead(self._old_P_L, self._old_P_H, location_map)
-        self._buffer.add(overhead_data)
-        return P_L, P_H, self._get_capacity(P_H) - len(overhead_data)
+        # self._buffer.add(overhead_data)
+        return overhead_data, self._get_capacity(P_H) - len(overhead_data)
+
+    def _fill_buffer(self, buffer_data):
+        self._buffer.add(buffer_data)
 
     def _get_peaks(self):
         hist = self._get_hist()
@@ -65,15 +75,15 @@ class UnidirectionEmbedder:
 
         return P_L, P_H
 
-    def _get_location_map(self, P_L, P_H):
+    def _get_location_map(self, P_L, P_H) -> np.ndarray:
         d = get_shift_direction(P_L, P_H)
         location_map = self._body_pixels[np.logical_or(self._body_pixels == P_L - d, self._body_pixels == P_L)]
-        return location_map == P_L - d
+        return np.equal(location_map, P_L - d)
 
     def _get_hist(self):
         return np.bincount(np.array(self._body_pixels).flatten(), minlength=L)
 
-    def _get_overhead(self, P_L, P_H, location_map):
+    def _get_overhead(self, P_L, P_H, location_map: np.ndarray):
         compressed_map = bytes_to_bits(self._compress(bits_to_bytes(location_map)))
         flag = len(location_map) > len(compressed_map) + COMPRESSED_DATA_LENGTH_BITS
 
@@ -119,9 +129,17 @@ class UnidirectionEmbedder:
         if not hasattr(self, '_index'):
             self._index = 0
 
+        if not self._index:
+            self._initialize()
+
         try:
             self._index += 1
-            return self.embed(self._index)
+            if self._index == 69:
+                print()
+            embedded_image, iterations, pure_embedded_data = self._process()
+            if not iterations:
+                raise StopIteration
+            return embedded_image, self._index, pure_embedded_data
         except ValueError:
             self.index = 0
             raise StopIteration
