@@ -20,9 +20,9 @@ ORIGINAL_IMAGE_NAME = args.source
 ORIGINAL_IMAGE_PATH = f'res/{ORIGINAL_IMAGE_NAME}'
 DATA_PATH = '/res/data.txt'
 RDH_ALGORITHMS = [
-    # original_algorithm,
-    # scaling_algorithm,
-    # bp_scaling_algorithm,
+    original_algorithm,
+    scaling_algorithm,
+    bp_scaling_algorithm,
     uni_algorithm,
     bp_uni_algorithm_improved,
     bp_uni_algorithm,
