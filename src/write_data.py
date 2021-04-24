@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import Union
 
 from dateutil.parser import parse as parse_date
 
@@ -7,7 +8,7 @@ DATA_PATH = 'runs'
 
 
 # write_data('uni', 'a.png', 3, mean=[1, 2, 3], std=[3, 4, 5])
-def write_data(algorithm_name: str, filename: str, iterations_count: int, **data):
+def write_data(algorithm_name: str, filename: str, iterations_count: int, **data) -> None:
     file_path = f'{DATA_PATH}/{algorithm_name}.json'
     with open(file_path, mode='a+', encoding='utf-8') as data_file:
         data_file.seek(0)
@@ -34,12 +35,12 @@ def write_data(algorithm_name: str, filename: str, iterations_count: int, **data
         json.dump(algorithm_data, data_file, indent=3)
 
 
-def serialize_data(data):
+def serialize_data(data: list) -> str:
     # return data
-    return ','.join(str(float(x)) for x in data)
+    return json.dumps(data)
 
 
-def read_data(algorithm_name):
+def read_data(algorithm_name) -> dict:
     file_path = f'{DATA_PATH}/{algorithm_name}.json'
     with open(file_path, mode='r', encoding='utf-8') as data:
         data = json.load(data)['runs']
@@ -52,8 +53,8 @@ def read_data(algorithm_name):
         return data
 
 
-def deserialize_data(data):
+def deserialize_data(data: str) -> str:
     # return data
-    return [float(x) for x in data.split(',')]
+    return json.loads(data)
 
 # write_data('uni', 'a.png', mean=[1, 2, 3], std=[4, 5, 6])
