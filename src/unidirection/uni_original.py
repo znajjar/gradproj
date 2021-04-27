@@ -81,7 +81,7 @@ class UnidirectionEmbedder:
         return np.equal(location_map, P_L - d)
 
     def _get_hist(self):
-        return np.bincount(np.array(self._body_pixels).flatten(), minlength=L)
+        return np.bincount(np.array(self._body_pixels).flatten(), minlength=MAX_PIXEL_VALUE + 1)
 
     def _get_overhead(self, P_L, P_H, location_map: np.ndarray):
         compressed_map = bytes_to_bits(self._compress(bits_to_bytes(location_map)))
