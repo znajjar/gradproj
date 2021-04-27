@@ -189,7 +189,7 @@ if __name__ == '__main__':
     embedder = OriginalEmbedder(image.copy(), data)
     extractor = OriginalExtractor()
 
-    embedded, hidden_data_size = embedder.embed(64)
+    embedded, hidden_data_size, _ = embedder.embed(64)
     cv2.imwrite('out/embedded.png', embedded)
 
     extracted, iterations, hidden_data = extractor.extract(embedded)

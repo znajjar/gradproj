@@ -1,5 +1,5 @@
 from util import *
-from .configurations import *
+from unidirection.configurations import *
 
 
 class UnidirectionEmbedder:

@@ -1,6 +1,6 @@
-from .configurations import *
-from .uni_original import UnidirectionEmbedder, UnidirectionExtractor
-from ..util import *
+from unidirection.configurations import *
+from unidirection.uni_original import UnidirectionEmbedder, UnidirectionExtractor
+from util import *
 
 
 class BPUnidirectionEmbedder(UnidirectionEmbedder):

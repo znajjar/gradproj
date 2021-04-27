@@ -1,5 +1,5 @@
-from src.bidirectional.original import *
-from src.util.util import *
+from bidirectional.original import *
+from util.util import *
 
 
 class ScalingEmbedder(OriginalEmbedder):
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     embedder = ScalingEmbedder(image, data)
 
-    embedded_image, hidden_data_size = embedder.embed(64)
+    embedded_image, hidden_data_size, _ = embedder.embed(64)
 
     cv2.imwrite('out/embedded_scaling.png', embedded_image)
 
