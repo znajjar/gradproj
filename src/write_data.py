@@ -1,60 +1,73 @@
+import dataclasses
 import datetime
 import json
-from typing import Union
-
-from dateutil.parser import parse as parse_date
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import NoReturn, Optional, Any, List
 
 DATA_PATH = 'runs'
 
 
-# write_data('uni', 'a.png', 3, mean=[1, 2, 3], std=[3, 4, 5])
-def write_data(algorithm_name: str, filename: str, iterations_count: int, **data) -> None:
-    file_path = f'{DATA_PATH}/{algorithm_name}.json'
-    with open(file_path, mode='a+', encoding='utf-8') as data_file:
-        data_file.seek(0)
-        data_json = data_file.read()
-    if data_json:
-        algorithm_data = json.loads(data_json)
-    else:
-        algorithm_data = {
-            'algorithm': algorithm_name,
-            'runs': [],
-            'index': {},
-        }
+@dataclass
+class ImageStats:
+    filename: str
+    iterations: Optional[int] = 0
+    mean: Optional[List[float]] = field(default_factory=list)
+    std: Optional[List[float]] = field(default_factory=list)
+    ssim: Optional[List[float]] = field(default_factory=list)
+    ratio: Optional[List[float]] = field(default_factory=list)
 
-    algorithm_data['runs'].append({
-        'filename': filename,
-        'date': datetime.datetime.utcnow().isoformat(),
-        'iterations': iterations_count,
-        **{label: serialize_data(data) for label, data in data.items()},
-    })
-
-    algorithm_data['index'][filename] = len(algorithm_data['runs']) - 1
-
-    with open(file_path, mode='w', encoding='utf-8') as data_file:
-        json.dump(algorithm_data, data_file, indent=3)
+    def append_iteration(self, mean: float, std: float, ssim: float, ratio: float):
+        self.mean.append(mean)
+        self.std.append(std)
+        self.ssim.append(ssim)
+        self.ratio.append(ratio)
+        self.iterations += 1
 
 
-def serialize_data(data: list) -> str:
-    # return data
-    return json.dumps(data)
+@dataclass
+class RunStats:
+    algorithm: str
+    date: Optional[datetime.date] = field(default_factory=datetime.datetime.utcnow)
+    images: Optional[List[ImageStats]] = field(default_factory=list)
+
+    def append_image_stats(self, image_stats: ImageStats) -> NoReturn:
+        self.images.append(image_stats)
 
 
-def read_data(algorithm_name) -> dict:
-    file_path = f'{DATA_PATH}/{algorithm_name}.json'
-    with open(file_path, mode='r', encoding='utf-8') as data:
-        data = json.load(data)['runs']
-        for run_data in data:
-            for label, value in run_data.items():
-                if label == 'date':
-                    run_data[label] = parse_date(value)
-                elif label not in ('filename', 'iterations'):
-                    run_data[label] = deserialize_data(value)
-        return data
+def default(obj: Any) -> Any:
+    if dataclasses.is_dataclass(obj):
+        return dataclasses.asdict(obj)
+    elif isinstance(obj, datetime.date):
+        return obj.isoformat()
+    return obj
 
 
-def deserialize_data(data: str) -> str:
-    # return data
-    return json.loads(data)
+def dump_json(obj: Any, file_path: str) -> NoReturn:
+    with open(file_path, mode='w+', encoding='utf-8') as data_file:
+        json.dump(obj, data_file, default=default)
 
-# write_data('uni', 'a.png', mean=[1, 2, 3], std=[4, 5, 6])
+
+def get_latest_file_path(algorithm: str) -> str:
+    return f'{DATA_PATH}/{algorithm}.json'
+
+
+def get_run_file_path(run: RunStats) -> str:
+    return f'{DATA_PATH}/{run.algorithm}/{run.date.isoformat().replace(".", "-").replace(":", "-")}.json'
+
+
+def write_to_current(run_data: RunStats) -> NoReturn:
+    file_path = get_latest_file_path(run_data.algorithm)
+    dump_json(run_data, file_path)
+
+
+def write_to_past(run_data: RunStats) -> NoReturn:
+    algorithm_name = run_data.algorithm
+    Path(f'{DATA_PATH}/{algorithm_name}').mkdir(parents=True, exist_ok=True)
+    file_path = get_run_file_path(run_data)
+    dump_json(run_data, file_path)
+
+
+def write_data(run_data: RunStats) -> NoReturn:
+    write_to_current(run_data)
+    write_to_past(run_data)
