@@ -93,7 +93,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
 
 class BPUnidirectionExtractor(UnidirectionExtractor):
-    pass
+    ...
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+import os.path
 from collections.abc import Iterable
 from typing import Union
 
@@ -5,6 +6,7 @@ import PIL.Image as Image
 import matplotlib.pyplot as plt
 import numpy as np
 
+IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'bmp', 'jpg', 'gif']
 COMPRESSED_DATA_LENGTH_BITS = 16
 MAX_PIXEL_VALUE = 255
 HEADER_SIZE = 17
@@ -164,6 +166,10 @@ def get_shift_direction(P_L, P_H):
         return 1
 
 
-def get_peaks_from_header(header_pixels, peak_size: int = 8):
+def get_peaks_from_header(header_pixels: np.ndarray, peak_size: int = 8) -> (np.ndarray, np.ndarray):
     LSB = get_lsb(header_pixels)
     return binary_to_integer(LSB[0:peak_size]), binary_to_integer(LSB[peak_size:2 * peak_size])
+
+
+def is_image(image_path: str) -> bool:
+    return os.path.isfile(image_path) and os.path.splitext(image_path)[1][1:] in IMAGE_EXTENSIONS
