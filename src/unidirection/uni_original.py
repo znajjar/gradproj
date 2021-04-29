@@ -1,5 +1,5 @@
-from util import *
 from unidirection.configurations import *
+from util import *
 
 
 class UnidirectionEmbedder:
@@ -14,6 +14,7 @@ class UnidirectionEmbedder:
 
         self._old_P_L = None
         self._old_P_H = None
+        self._index = 0
 
     def embed(self, iterations):
         self._initialize()
@@ -25,7 +26,8 @@ class UnidirectionEmbedder:
 
         P_L, P_H = self._get_peaks()
         buffer_data, extra_space = self._get_buffer_data(P_L, P_H)
-        extra_space -= HEADER_PIXELS
+        if not self._index:
+            extra_space -= HEADER_PIXELS
         while extra_space >= 0 and iteration < iterations:
             self._fill_buffer(buffer_data)
             pure_embedded_data += extra_space
@@ -123,19 +125,15 @@ class UnidirectionEmbedder:
             self._header_pixels[i] = set_lsb(self._header_pixels[i], LSBs[i])
 
     def __iter__(self):
+        self._index = 0
         return self
 
     def __next__(self):
-        if not hasattr(self, '_index'):
-            self._index = 0
-
         if not self._index:
             self._initialize()
 
         try:
             self._index += 1
-            if self._index == 69:
-                print()
             embedded_image, iterations, pure_embedded_data = self._process()
             if not iterations:
                 raise StopIteration

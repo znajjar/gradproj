@@ -12,7 +12,7 @@ from util.util import bits_to_bytes, read_image, is_image
 from write_data import RunStats, ImageStats, write_data
 
 ORIGINAL_IMAGES_PATH = 'res/dataset-50/'
-original_images = ['1.gif']  # path relative to ORIGINAL_IMAGES_PATH
+original_images = []  # path relative to ORIGINAL_IMAGES_PATH
 
 if not original_images:
     for f in os.listdir(ORIGINAL_IMAGES_PATH):
@@ -32,7 +32,7 @@ RDH_ALGORITHMS = [
     # bp_scaling_algorithm,
     uni_algorithm,
     # bp_uni_algorithm_improved,
-    bp_uni_algorithm,
+    # bp_uni_algorithm,
 ]
 
 np.random.seed(2115)
@@ -54,7 +54,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
             print(f'{iterations_count} iterations:')
 
             try:
-                recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
+                recovered_image, extraction_iterations, extracted_data = Measure(extractor.extract, print_time=True)(embedded_image)
                 is_successful = \
                     not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
                 hidden_data_size = len(extracted_data) * 8
