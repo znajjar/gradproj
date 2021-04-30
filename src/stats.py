@@ -12,7 +12,7 @@ from util.util import bits_to_bytes, read_image, is_image
 from write_data import RunStats, ImageStats, write_data
 
 ORIGINAL_IMAGES_PATH = 'res/dataset-50/'
-original_images = ['1.gif']  # path relative to ORIGINAL_IMAGES_PATH
+original_images = [f'{i}.gif' for i in range(1, 50)]  # path relative to ORIGINAL_IMAGES_PATH
 
 if not original_images:
     for f in os.listdir(ORIGINAL_IMAGES_PATH):
@@ -30,8 +30,8 @@ RDH_ALGORITHMS = [
     # original_algorithm,
     # scaling_algorithm,
     # bp_scaling_algorithm,
-    uni_algorithm,
-    # bp_uni_algorithm_improved,
+    # uni_algorithm,
+    bp_uni_algorithm_improved,
     bp_uni_algorithm,
 ]
 

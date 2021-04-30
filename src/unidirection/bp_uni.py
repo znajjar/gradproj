@@ -98,17 +98,17 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
         compressed_map_size = location_map_size.copy()
 
-        low_range = np.logical_and(location_map_size > 0, location_map_size <= 1500)
-        compressed_map_size[low_range] = 2.4274572 * percentage[low_range] ** 0.3849364 * location_map_size[
-            low_range] ** -0.0395816 + 180.07035 / location_map_size[low_range]
+        low_range = np.logical_and(location_map_size >= 200, location_map_size <= 2000)
+        compressed_map_size[low_range] = 2.318468 * percentage[low_range] ** 0.405595 * location_map_size[
+            low_range] ** -0.038066 + 226.678704 / location_map_size[low_range]
 
-        high_range = location_map_size > 1500
+        high_range = location_map_size > 2000
         compressed_map_size[high_range] = (2.4274572 * percentage[high_range] ** 0.3849364 - 0.1690710) * \
                                           location_map_size[high_range] ** -0.0395816
 
         compressed_map_size = compressed_map_size * location_map_size
 
-        return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size)
+        return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
 
 
 class BPUnidirectionExtractor(UnidirectionExtractor):
