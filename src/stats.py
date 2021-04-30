@@ -27,10 +27,10 @@ print(len(original_images))
 original_images = [(os.path.split(image)[1], read_image(image)) for image in original_images]
 
 RDH_ALGORITHMS = [
-    # original_algorithm,
-    # scaling_algorithm,
-    # bp_scaling_algorithm,
-    # uni_algorithm,
+    original_algorithm,
+    scaling_algorithm,
+    bp_scaling_algorithm,
+    uni_algorithm,
     bp_uni_algorithm_improved,
     bp_uni_algorithm,
 ]
@@ -54,7 +54,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
             print(f'{iterations_count} iterations:')
 
             try:
-                recovered_image, extraction_iterations, extracted_data = extractor.extract(embedded_image)
+                recovered_image, extraction_iterations, extracted_data = Measure(extractor.extract, print_time=True)(embedded_image)
                 is_successful = \
                     not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
                 hidden_data_size = len(extracted_data) * 8

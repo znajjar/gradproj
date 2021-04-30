@@ -21,12 +21,12 @@ class UnidirectionEmbedder:
         return self._process(iterations)
 
     def _process(self, iterations=1):
+        iteration = 0
         pure_embedded_data = 0
 
         P_L, P_H = self._get_peaks()
         buffer_data, extra_space = self._get_buffer_data(P_L, P_H)
-
-        if self._index == 0:
+        if not self._index:
             extra_space -= HEADER_PIXELS
 
         while extra_space >= 0 and self._index < iterations:
