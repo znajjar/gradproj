@@ -29,18 +29,20 @@ class BPScalingExtractor(ScalingExtractor):
 
 
 if __name__ == '__main__':
-    image = read_image('res/dataset-50/36.gif')
+    from skimage.metrics import structural_similarity
+    image = read_image('res/dataset-50/19.gif')
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     embedder = BPScalingEmbedder(image, data)
 
-    embedded_image, iterations, hidden_data_size = embedder.embed(64)
+    embedded_image, iterations, hidden_data_size = embedder.embed(78)
 
-    print(hidden_data_size)
-    print(np.mean(image))
-    print(np.mean(embedded_image))
-    print(np.std(image))
-    print(np.std(embedded_image))
+    print(f'Mean difference: {abs(np.mean(embedded_image) - np.mean(image))}')
+    print(f'SSIM: {structural_similarity(image, embedded_image)}')
+    print(f'Old STD: {np.std(image)}')
+    print(f'New STD: {np.std(embedded_image)}')
+    print(f'Rate: {hidden_data_size / image.size}')
+
     show_hist(embedded_image)
 
     Image.fromarray(embedded_image).save('out/bp_scaling.png')
