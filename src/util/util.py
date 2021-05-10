@@ -171,6 +171,20 @@ def get_shift_direction(P_L, P_H):
         return 1
 
 
+def estimite_compressed_map_size(location_map_size, percentage):
+    compressed_map_size = location_map_size.copy()
+
+    low_range = np.logical_and(location_map_size >= 200, location_map_size <= 2000)
+    compressed_map_size[low_range] = 2.318468 * percentage[low_range] ** 0.405595 * location_map_size[
+        low_range] ** -0.038066 + 226.678704 / location_map_size[low_range]
+
+    high_range = location_map_size > 2000
+    compressed_map_size[high_range] = (2.4274572 * percentage[high_range] ** 0.3849364 - 0.1690710) * \
+                                      location_map_size[high_range] ** -0.0395816
+
+    return compressed_map_size * location_map_size
+
+
 def get_peaks_from_header(header_pixels: np.ndarray, peak_size: int = 8) -> (np.ndarray, np.ndarray):
     LSB = get_lsb(header_pixels)
     return binary_to_integer(LSB[0:peak_size]), binary_to_integer(LSB[peak_size:2 * peak_size])
