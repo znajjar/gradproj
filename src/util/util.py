@@ -25,7 +25,7 @@ def binary_to_string(binary):
 
 
 def binary_to_integer(binary):
-    return int.from_bytes(bits_to_bytes(binary), byteorder='big', signed=False)
+    return int.from_bytes(bits_to_bytes(pad_bits(binary)), byteorder='big', signed=False)
 
 
 def get_lsb(values):
@@ -53,6 +53,11 @@ def bits_to_bytes(buffer):
     return np.packbits(buffer).tobytes()
 
 
+def pad_bits(bits):
+    pad_size = 8 - len(bits) % 8
+    return np.append(np.zeros((pad_size,)), bits).astype(bool)
+
+
 def get_header_and_body(image: np.ndarray, header_size: int = HEADER_SIZE) -> (np.ndarray, np.ndarray):
     image = image.ravel().copy()
     return image[:int(header_size)], image[int(header_size):]
@@ -77,7 +82,7 @@ def scale_to(image: np.ndarray, r: Union[np.ndarray, Iterable, int, str]) -> np.
 
     image *= scale_factor
 
-    if scaled_range <= original_range:  # TODO make sure this always works
+    if scaled_range <= original_range:
         image -= EPS
         image = np.ceil(image)
     else:
