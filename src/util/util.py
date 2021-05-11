@@ -14,7 +14,7 @@ EPS = 0.00000005
 
 
 def integer_to_binary(number: int, bits=8):
-    return np.array([x == '1' for x in format(number, f'0{bits}b')])
+    return np.array([x == '1' for x in format(number, f'0{bits}b')])[:bits]
 
 
 def binary_to_string(binary):
@@ -183,6 +183,11 @@ def estimite_compressed_map_size(location_map_size, percentage):
                                       location_map_size[high_range] ** -0.0395816
 
     return compressed_map_size * location_map_size
+
+
+def find_closest_candidate(candidates, value):
+    candidates = np.atleast_1d(candidates)
+    return candidates[np.abs(candidates - value).argmin()]
 
 
 def get_peaks_from_header(header_pixels: np.ndarray, peak_size: int = 8) -> (np.ndarray, np.ndarray):

@@ -163,9 +163,8 @@ class UnidirectionExtractor:
             self._direction = get_shift_direction(P_L, P_H)
             self._fill_payload(P_H)
             new_P_L, new_P_H = self._get_next_peaks()
-            location_map = self._get_location_map(P_L)
             self._shift_in_between(P_L, P_H)
-            self._fix_P_L_bin(P_L, location_map)
+            self._fix_P_L_bin(P_L)
 
             if new_P_L == 0 and new_P_H == 0:
                 self._fix_LSB(self._buffer.next(HEADER_PIXELS))
@@ -187,6 +186,19 @@ class UnidirectionExtractor:
     def _get_next_peaks(self):
         return binary_to_integer(self._buffer.next(PEAK_BITS)), binary_to_integer(self._buffer.next(PEAK_BITS))
 
+    def _shift_in_between(self, P_L, P_H):
+        in_between = np.logical_and(self._body_pixels > min((P_H, P_L)), self._body_pixels < max((P_H, P_L)))
+        self._body_pixels[in_between] = self._body_pixels[in_between] - self._direction
+
+    def _fix_P_L_bin(self, P_L):
+        location_map = self._get_location_map(P_L)
+        combined_bin = self._body_pixels == P_L
+        if location_map.size == 0:
+            self._body_pixels[combined_bin] = self._body_pixels[combined_bin] - self._direction
+        else:
+            self._body_pixels[combined_bin] = self._body_pixels[combined_bin] - \
+                                              self._direction * location_map[:np.sum(combined_bin)]
+
     def _get_location_map(self, P_L):
         is_map_compressed = self._buffer.next(FLAG_BIT)[0]
         if is_map_compressed:
@@ -194,18 +206,6 @@ class UnidirectionExtractor:
             return bytes_to_bits(self._decompress(bits_to_bytes(self._buffer.next(map_size))))
         else:
             return self._buffer.next(np.sum(self._body_pixels == P_L))
-
-    def _shift_in_between(self, P_L, P_H):
-        in_between = np.logical_and(self._body_pixels > min((P_H, P_L)), self._body_pixels < max((P_H, P_L)))
-        self._body_pixels[in_between] = self._body_pixels[in_between] - self._direction
-
-    def _fix_P_L_bin(self, P_L, location_map):
-        combined_bin = self._body_pixels == P_L
-        if location_map.size == 0:
-            self._body_pixels[combined_bin] = self._body_pixels[combined_bin] - self._direction
-        else:
-            self._body_pixels[combined_bin] = self._body_pixels[combined_bin] - \
-                                              self._direction * location_map[:np.sum(combined_bin)]
 
     def _fix_LSB(self, LSBs):
         for i in range(0, HEADER_PIXELS):
