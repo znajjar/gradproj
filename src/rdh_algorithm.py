@@ -21,3 +21,4 @@ bp_uni_algorithm = RdhAlgorithm(bp_uni.BPUnidirectionEmbedder, bp_uni.BPUnidirec
 bp_uni_algorithm_improved = RdhAlgorithm(bp_uni_improved.ImprovedBPUnidirectionEmbedder,
                                          bp_uni_improved.BPUnidirectionExtractor,
                                          'bp_unidirection_improved')
+vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder, scaling.VariableBitsScalingExtractor, 'vb_scaling')

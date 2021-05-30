@@ -112,7 +112,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         placement_peak_frequency = self._hist[self._minimum_closest_P_L[P_L]]
         location_map_size = np.asarray(P_L_frequency + placement_peak_frequency, dtype=float)
         percentage = np.minimum(P_L_frequency, placement_peak_frequency) / location_map_size
-        compressed_map_size = estimite_compressed_map_size(location_map_size, percentage)
+        compressed_map_size = estimate_compressed_map_size(location_map_size, percentage)
 
         return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
 

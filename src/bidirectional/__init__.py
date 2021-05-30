@@ -8,4 +8,5 @@ __all__ = [
     'ScalingEmbedder',
     'ScalingExtractor',
     'BPScalingEmbedder',
+    'VariableBitsScalingEmbedder',
 ]
