@@ -78,6 +78,8 @@ class VariableBitsScalingEmbedder(ScalingEmbedder):
         self._processed_pixels = scale_to(self._processed_pixels, scaled_max)
         # mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
         map_sizes = get_values_freqs(self._original_max - self._original_min, scaled_max)
+        if np.max(map_sizes) > 2:
+            raise ValueError
         # values_freq = np.where(values_freq == 0, 1, values_freq)  # so we get 0 for 0s
         # map_sizes = np.ceil(np.log2(values_freq)).astype(int)
         is_rounded = self.get_is_rounded(original_pixels, self._processed_pixels)
@@ -86,9 +88,13 @@ class VariableBitsScalingEmbedder(ScalingEmbedder):
         print(np.unique(is_rounded))
         # map_sizes_bits = integers_to_binary(is_rounded, 4)
 
-        for index, value in enumerate(is_rounded):
-            diff = integer_to_binary(value, map_sizes[self._processed_pixels[index]])
-            is_rounded_bits.push(diff)
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            is_rounded_bits.push(integers_to_bits(is_rounded[pixels_with_value], map_sizes[value]))
+
+        # for index, value in enumerate(is_rounded):
+        #     diff = integer_to_binary(value, map_sizes[self._processed_pixels[index]])
+        #     is_rounded_bits.push(diff)
 
         self._processed_pixels += iterations
 
@@ -121,10 +127,20 @@ class VariableBitsScalingExtractor(ScalingExtractor):
 
         is_rounded = BoolDataBuffer(is_rounded)
 
-        for index, value in enumerate(self._processed_pixels):
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
             bits_length = map_sizes[value]
-            diff = binary_to_integer(is_rounded.next(bits_length))
-            recovered_pixels[index] -= diff
+            if not bits_length:
+                continue
+            bits_count = np.count_nonzero(pixels_with_value) * bits_length
+            bits = is_rounded.next(bits_count)
+            is_rounded_value = bits_to_integers(bits, bits_length)
+            recovered_pixels[pixels_with_value] -= is_rounded_value
+
+        # for index, value in enumerate(self._processed_pixels):
+        #     bits_length = map_sizes[value]
+        #     diff = binary_to_integer(is_rounded.next(bits_length))
+        #     recovered_pixels[index] -= diff
 
         # recovered_pixels[mapped_values] -= is_rounded[:np.count_nonzero(mapped_values)]
         # recovered_pixels += self._original_min
@@ -137,31 +153,35 @@ def get_values_freqs(original_max: int, scaled_max: int):
 
     # recovered_values = scale_to(scaled_values, original_max)
 
-    values_freq = np.bincount(scaled_values, minlength=255)
+    values_freq = np.bincount(scaled_values, minlength=256)
     values_freq = np.where(values_freq == 0, 1, values_freq)  # so we get 0 for 0s
     return np.ceil(np.log2(values_freq)).astype(int)
 
 
-def integers_to_binary(r, m=8):
-    return ((r[:, None] & (1 << np.arange(m))) > 0).astype(int)
+def integers_to_bits(r, m=8):
+    return ((r[:, None] & (1 << np.arange(m))) > 0).ravel().astype(bool)
+
+
+def bits_to_integers(r: np.ndarray, m=8):
+    return np.packbits(r.reshape((r.size // m, m)), bitorder='little', axis=1).ravel()
 
 
 def resize_values(pixels, sizes_map):
     for value, size in enumerate(sizes_map):
         # values = np.where(pixels == value)
         # pixels[values]
-        value_bits = integers_to_binary(value, size)
+        value_bits = integers_to_bits(value, size)
         pixels[value] = value_bits
 
 
 if __name__ == '__main__':
     import cv2
 
-    im = read_image('res/f-16.png')
+    im = read_image('res/dataset-50/10.gif')
     embedder = VariableBitsScalingEmbedder(im, bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0), deflate)
     extractor = VariableBitsScalingExtractor()
 
-    embedded_image, iterations, embedded_data_size = embedder.embed(100)
+    embedded_image, iterations, embedded_data_size = embedder.embed(126)
     recovered_image, recovery_iterations, extracted_data = extractor.extract(embedded_image)
 
     print(embedded_data_size)

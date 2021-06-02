@@ -18,7 +18,15 @@ scaling_algorithm = RdhAlgorithm(scaling.ScalingEmbedder, scaling.ScalingExtract
 bp_scaling_algorithm = RdhAlgorithm(bp_scaling.BPScalingEmbedder, bp_scaling.BPScalingExtractor, 'bp_scaling')
 uni_algorithm = RdhAlgorithm(uni_original.UnidirectionEmbedder, uni_original.UnidirectionExtractor, 'unidirection')
 bp_uni_algorithm = RdhAlgorithm(bp_uni.BPUnidirectionEmbedder, bp_uni.BPUnidirectionExtractor, 'bp_unidirection')
+
 bp_uni_algorithm_improved = RdhAlgorithm(bp_uni_improved.ImprovedBPUnidirectionEmbedder,
                                          bp_uni_improved.BPUnidirectionExtractor,
                                          'bp_unidirection_improved')
-vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder, scaling.VariableBitsScalingExtractor, 'vb_scaling')
+
+vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder,
+                                    scaling.VariableBitsScalingExtractor,
+                                    'vb_scaling')
+
+bp_vb_scaling_algorithm = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder,
+                                       bp_scaling.BPVariableBitsScalingExtractor,
+                                       'bp_vb_scaling')

@@ -1,6 +1,6 @@
 from bidirectional.configurations import BRIGHTNESS_THRESHOLD
+from bidirectional.scaling import *
 from util import *
-from bidirectional.scaling import ScalingEmbedder, ScalingExtractor
 
 
 class BPScalingEmbedder(ScalingEmbedder):
@@ -28,14 +28,23 @@ class BPScalingExtractor(ScalingExtractor):
     pass
 
 
+class BPVariableBitsScalingEmbedder(BPScalingEmbedder, VariableBitsScalingEmbedder):
+    pass
+
+
+class BPVariableBitsScalingExtractor(BPScalingExtractor, VariableBitsScalingExtractor):
+    pass
+
+
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
-    image = read_image('res/dataset-50/19.gif')
+
+    image = read_image('res/f-16.png')
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = BPScalingEmbedder(image, data)
+    embedder = BPVariableBitsScalingEmbedder(image, data)
 
-    embedded_image, iterations, hidden_data_size = embedder.embed(78)
+    embedded_image, iterations, hidden_data_size = embedder.embed(98)
 
     print(f'Mean difference: {abs(np.mean(embedded_image) - np.mean(image))}')
     print(f'SSIM: {structural_similarity(image, embedded_image)}')
