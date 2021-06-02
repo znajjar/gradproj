@@ -11,8 +11,8 @@ from util.measure import Measure
 from util.util import bits_to_bytes, read_image, is_image
 from write_data import RunStats, ImageStats, write_data
 
-IMAGES_PATH = 'res/'
-original_images = ['f-16.png']  # path relative to ORIGINAL_IMAGES_PATH
+IMAGES_PATH = 'res/dataset-50/'
+original_images = []  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
 if not original_images:
@@ -25,10 +25,11 @@ if not original_images:
 original_images = [(image, read_image(join_path(IMAGES_PATH, image))) for image in original_images]
 
 RDH_ALGORITHMS = [
-    original_algorithm,
-    bp_vb_scaling_algorithm,
-    vb_scaling_algorithm,
+    # original_algorithm,
+    # bp_vb_scaling_algorithm,
+    # vb_scaling_algorithm,
     # scaling_algorithm,
+    vo_scaling_algorithm,
     # bp_scaling_algorithm,
     # uni_algorithm,
     # bp_uni_algorithm_improved,
