@@ -171,7 +171,7 @@ def get_shift_direction(P_L, P_H):
         return 1
 
 
-def estimite_compressed_map_size(location_map_size, percentage):
+def estimate_compressed_map_size(location_map_size, percentage):
     compressed_map_size = location_map_size.copy()
 
     low_range = np.logical_and(location_map_size >= 200, location_map_size <= 2000)

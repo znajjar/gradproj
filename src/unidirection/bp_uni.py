@@ -9,21 +9,21 @@ class BPUnidirectionEmbedder(UnidirectionEmbedder):
         self._original_brightness = np.mean(cover_image)
 
     def _get_peaks(self):
-        hist = self._get_hist()
+        self._hist = self._get_hist()
         current_brightness = np.mean(self._body_pixels)
         if self._original_brightness - current_brightness > BRIGHTNESS_THRESHOLD:
-            P_H = hist[:MAX_PIXEL_VALUE - 1].argmax()
+            P_H = self._hist[:MAX_PIXEL_VALUE - 1].argmax()
         elif self._original_brightness - current_brightness < -BRIGHTNESS_THRESHOLD:
-            P_H = hist[2:].argmax() + 2
+            P_H = self._hist[2:].argmax() + 2
         else:
-            P_H = hist.argmax()
+            P_H = self._hist.argmax()
 
         if self._original_brightness - current_brightness > BRIGHTNESS_THRESHOLD or P_H < 2:
-            P_L = get_minimum_closest_right(hist, P_H)
+            P_L = get_minimum_closest_right(self._hist, P_H)
         elif self._original_brightness - current_brightness < -BRIGHTNESS_THRESHOLD or P_H > 253:
-            P_L = get_minimum_closest_left(hist, P_H)
+            P_L = get_minimum_closest_left(self._hist, P_H)
         else:
-            P_L = get_minimum_closest(hist, P_H)
+            P_L = get_minimum_closest(self._hist, P_H)
 
         return P_L, P_H
 

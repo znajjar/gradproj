@@ -1,9 +1,16 @@
-from unidirection import BPUnidirectionEmbedder, UnidirectionExtractor
+from unidirection import BPUnidirectionEmbedder, BPUnidirectionExtractor
 from unidirection.configurations import *
 from util import *
 
 
 class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
+
+    def __init__(self, cover_image: np.ndarray, hidden_data: Iterable, compression: CompressionAlgorithm = deflate):
+        super().__init__(cover_image, hidden_data, compression)
+        self._P_L = None
+        self._P_H = None
+        self._offset = None
+        self._minimum_closest_P_L = None
 
     def _shift_in_between(self, P_L, P_H):
         self._body_pixels[self._body_pixels == P_L] = self._minimum_closest_P_L[P_L]
@@ -112,12 +119,12 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         placement_peak_frequency = self._hist[self._minimum_closest_P_L[P_L]]
         location_map_size = np.asarray(P_L_frequency + placement_peak_frequency, dtype=float)
         percentage = np.minimum(P_L_frequency, placement_peak_frequency) / location_map_size
-        compressed_map_size = estimite_compressed_map_size(location_map_size, percentage)
+        compressed_map_size = estimate_compressed_map_size(location_map_size, percentage)
 
         return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
 
 
-class BPUnidirectionExtractor(UnidirectionExtractor):
+class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
 
     def _shift_in_between(self, P_L, P_H):
         if P_L < P_H:
@@ -163,6 +170,6 @@ if __name__ == '__main__':
         print(f'STD: {embedded_image.std()}')
         print(f'SSIM: {structural_similarity(image, embedded_image)}')
 
-        extractor = BPUnidirectionExtractor()
+        extractor = ImprovedBPUnidirectionExtractor()
         print(f'Correct extraction? {np.sum(np.abs(extractor.extract(embedded_image)[0] - image))}')
         print()

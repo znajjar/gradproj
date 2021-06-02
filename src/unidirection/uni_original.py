@@ -12,6 +12,7 @@ class UnidirectionEmbedder:
         self._body_pixels = None
         self._buffer = None
 
+        self._hist = None
         self._old_P_L = None
         self._old_P_H = None
         self._index = None
@@ -66,14 +67,14 @@ class UnidirectionEmbedder:
         self._buffer.add(buffer_data)
 
     def _get_peaks(self):
-        hist = self._get_hist()
-        P_H = hist.argmax()
+        self._hist = self._get_hist()
+        P_H = self._hist.argmax()
         if P_H < 2:
-            P_L = get_minimum_closest_right(hist, P_H)
+            P_L = get_minimum_closest_right(self._hist, P_H)
         elif P_H > 253:
-            P_L = get_minimum_closest_left(hist, P_H)
+            P_L = get_minimum_closest_left(self._hist, P_H)
         else:
-            P_L = get_minimum_closest(hist, P_H)
+            P_L = get_minimum_closest(self._hist, P_H)
 
         return P_L, P_H
 
@@ -104,7 +105,7 @@ class UnidirectionEmbedder:
                 location_map], axis=None).astype(bool)
 
     def _get_capacity(self, P_H):
-        return np.sum(self._body_pixels == P_H)
+        return self._hist[P_H]
 
     def _shift_histogram(self, P_L, P_H):
         self._shift_in_between(P_L, P_H)

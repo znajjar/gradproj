@@ -19,5 +19,5 @@ bp_scaling_algorithm = RdhAlgorithm(bp_scaling.BPScalingEmbedder, bp_scaling.BPS
 uni_algorithm = RdhAlgorithm(uni_original.UnidirectionEmbedder, uni_original.UnidirectionExtractor, 'unidirection')
 bp_uni_algorithm = RdhAlgorithm(bp_uni.BPUnidirectionEmbedder, bp_uni.BPUnidirectionExtractor, 'bp_unidirection')
 bp_uni_algorithm_improved = RdhAlgorithm(bp_uni_improved.ImprovedBPUnidirectionEmbedder,
-                                         bp_uni_improved.BPUnidirectionExtractor,
+                                         bp_uni_improved.ImprovedBPUnidirectionExtractor,
                                          'bp_unidirection_improved')
