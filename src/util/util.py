@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'bmp', 'jpg', 'gif']
-COMPRESSED_DATA_LENGTH_BITS = 16
+COMPRESSED_DATA_LENGTH_BITS = 24
 MAX_PIXEL_VALUE = 255
 HEADER_SIZE = 17
 EPS = 0.00000005
@@ -24,8 +24,8 @@ def binary_to_string(binary):
         return '0'
 
 
-def binary_to_integer(binary):
-    return int.from_bytes(bits_to_bytes(pad_bits(binary)), byteorder='big', signed=False)
+def binary_to_integer(binary, byteorder='big'):
+    return int.from_bytes(bits_to_bytes(pad_bits(binary)), byteorder=byteorder, signed=False)
 
 
 def get_lsb(values):
@@ -49,8 +49,8 @@ def bytes_to_bits(buffer):
     return np.where(np.unpackbits(np.frombuffer(buffer, np.uint8)) == 1, True, False)
 
 
-def bits_to_bytes(buffer):
-    return np.packbits(buffer).tobytes()
+def bits_to_bytes(buffer, bitorder='big'):
+    return np.packbits(buffer, bitorder=bitorder).tobytes()
 
 
 def pad_bits(bits):
