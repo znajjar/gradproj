@@ -39,12 +39,12 @@ class BPVariableBitsScalingExtractor(BPScalingExtractor, VariableBitsScalingExtr
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
 
-    image = read_image('res/f-16.png')
+    image = read_image('res/lena_gray_512.png')
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     embedder = BPVariableBitsScalingEmbedder(image, data)
 
-    embedded_image, iterations, hidden_data_size = embedder.embed(98)
+    embedded_image, iterations, hidden_data_size = embedder.embed(100)
 
     print(f'Mean difference: {abs(np.mean(embedded_image) - np.mean(image))}')
     print(f'SSIM: {structural_similarity(image, embedded_image)}')
@@ -54,4 +54,4 @@ if __name__ == '__main__':
 
     show_hist(embedded_image)
 
-    Image.fromarray(embedded_image).save('out/bp_scaling.png')
+    Image.fromarray(embedded_image).save('out/bp_vb_scaling.png')

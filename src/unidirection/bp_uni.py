@@ -30,3 +30,24 @@ class BPUnidirectionEmbedder(UnidirectionEmbedder):
 
 class BPUnidirectionExtractor(UnidirectionExtractor):
     pass
+
+
+if __name__ == '__main__':
+    from skimage.metrics import structural_similarity
+
+    image = read_image('res/lena_gray_512.png')
+    np.random.seed(2115)
+    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+    embedder = BPUnidirectionEmbedder(image, data)
+
+    embedded_image, iterations, hidden_data_size = embedder.embed()
+
+    print(f'Mean difference: {abs(np.mean(embedded_image) - np.mean(image))}')
+    print(f'SSIM: {structural_similarity(image, embedded_image)}')
+    print(f'Old STD: {np.std(image)}')
+    print(f'New STD: {np.std(embedded_image)}')
+    print(f'Rate: {hidden_data_size / image.size}')
+
+    show_hist(embedded_image)
+
+    Image.fromarray(embedded_image).save('out/bp_vb_scaling.png')

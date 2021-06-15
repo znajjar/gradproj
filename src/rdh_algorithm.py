@@ -34,3 +34,7 @@ bp_vb_scaling_algorithm = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder,
 vo_scaling_algorithm = RdhAlgorithm(scaling.ValueOrderScalingEmbedder,
                                     scaling.ValueOrderedScalingExtractor,
                                     'vo_scaling')
+
+vo_original_algorithm = RdhAlgorithm(original.ValueOrderedOriginalEmbedder,
+                                     original.ValueOrderedOriginalExtractor,
+                                     'vo_original')

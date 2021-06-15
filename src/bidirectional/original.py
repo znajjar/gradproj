@@ -177,6 +177,51 @@ class OriginalExtractor:
         self._processed_pixels[np.logical_and(is_modified, self._processed_pixels >= 128)] += iterations
 
 
+class ValueOrderedOriginalEmbedder(OriginalEmbedder):
+    def _preprocess(self, iterations):
+        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
+        lower_bound = self._processed_pixels < iterations
+        upper_bound = MAX_PIXEL_VALUE - iterations < self._processed_pixels
+        is_modified |= lower_bound
+        is_modified |= upper_bound
+        self._processed_pixels[lower_bound] += iterations
+        self._processed_pixels[upper_bound] -= iterations
+
+        is_modified_ordered = BoolDataBuffer()
+
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+                is_modified_ordered.push(is_modified[pixels_with_value])
+        return is_modified_ordered.next(-1)
+
+
+class ValueOrderedOriginalExtractor(OriginalExtractor):
+    def _process_data(self, iterations):
+        for index, value in np.ndenumerate(self._header_pixels):
+            self._header_pixels[index] = set_lsb(value, self._buffer.next())
+
+        is_modified_size_bits = self._buffer.next(COMPRESSED_DATA_LENGTH_BITS)
+        is_modified_compressed_size = binary_to_integer(is_modified_size_bits)
+        is_modified_compressed = self._buffer.next(is_modified_compressed_size * 8)
+        is_modified_minimized_bytes = self._decompress(bits_to_bytes(is_modified_compressed))
+        is_modified_minimize_with_extra_bits = bytes_to_bits(is_modified_minimized_bytes)
+        hidden_data = bits_to_bytes(self._buffer.next(-1))
+        return hidden_data, is_modified_minimize_with_extra_bits
+
+    def _recover_image(self, iterations, is_modified):
+        is_modified = BoolDataBuffer(is_modified)
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            pixels_count = np.count_nonzero(pixels_with_value)
+            sign = 1 if value >= 128 else -1
+            rec_value = value + sign * iterations
+            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+                is_modified_value = np.zeros_like(pixels_with_value)
+                is_modified_value[pixels_with_value] = (is_modified.next(pixels_count))
+                self._processed_pixels[is_modified_value] = rec_value
+
+
 def embed(image, data, iterations=64):
     return OriginalEmbedder(image, data).embed(iterations)
 
