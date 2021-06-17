@@ -7,9 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'bmp', 'jpg', 'gif']
-COMPRESSED_DATA_LENGTH_BITS = 24
 MAX_PIXEL_VALUE = 255
-HEADER_SIZE = 17
 EPS = 0.00000005
 
 
@@ -58,7 +56,7 @@ def pad_bits(bits):
     return np.append(np.zeros((pad_size,)), bits).astype(bool)
 
 
-def get_header_and_body(image: np.ndarray, header_size: int = HEADER_SIZE) -> (np.ndarray, np.ndarray):
+def get_header_and_body(image: np.ndarray, header_size: int) -> (np.ndarray, np.ndarray):
     image = image.ravel().copy()
     return image[:int(header_size)], image[int(header_size):]
 

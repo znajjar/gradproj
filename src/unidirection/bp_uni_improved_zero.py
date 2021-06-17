@@ -15,7 +15,7 @@ class BPZeroUnidirectionEmbedder(ImprovedBPUnidirectionEmbedder):
     def _get_buffer_data(self, P_L, P_H):
         if self._zero_peak:
             overhead_data = self._get_overhead_zero_peak()
-            return overhead_data, self._get_capacity(P_H) - len(overhead_data)
+            return overhead_data, self._hist[P_H] - len(overhead_data)
         else:
             return super()._get_buffer_data(P_L, P_H)
 
@@ -124,21 +124,12 @@ class BPZeroUnidirectionExtractor(ImprovedBPUnidirectionExtractor):
             return self._buffer.next(np.sum(self._body_pixels == P_L + self._offset))
 
     def _get_compressed_map(self):
-        map_size = binary_to_integer(self._buffer.next(COMPRESSED_DATA_LENGTH_BITS))
+        map_size = binary_to_integer(self._buffer.next(COMPRESSED_DATA_LENGTH_BITS)) * BITS_PER_BYTE
         if map_size == 0:
             return np.ndarray(shape=(0, 0), dtype=bool)
         else:
             self._offset = self._get_offset()
             return bytes_to_bits(self._decompress(bits_to_bytes(self._buffer.next(map_size))))
-
-    def _get_offset(self):
-        sign = self._buffer.next(SIGN_BIT)
-        offset = binary_to_integer(self._buffer.next(PLACEMENT_BITS)) + 1
-
-        if sign:
-            return -offset
-        else:
-            return offset
 
 
 if __name__ == '__main__':

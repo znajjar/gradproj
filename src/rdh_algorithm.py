@@ -3,6 +3,7 @@ from typing import NamedTuple, Any
 from src.bidirectional import bp_scaling, scaling, original
 from src.unidirection import bp_uni
 from src.unidirection import bp_uni_improved
+from src.unidirection import bp_uni_improved_zero
 from src.unidirection import uni_original
 
 
@@ -22,6 +23,10 @@ bp_uni_algorithm = RdhAlgorithm(bp_uni.BPUnidirectionEmbedder, bp_uni.BPUnidirec
 bp_uni_algorithm_improved = RdhAlgorithm(bp_uni_improved.ImprovedBPUnidirectionEmbedder,
                                          bp_uni_improved.ImprovedBPUnidirectionExtractor,
                                          'bp_unidirection_improved')
+
+bp_uni_algorithm_improved_zero = RdhAlgorithm(bp_uni_improved_zero.BPZeroUnidirectionEmbedder,
+                                              bp_uni_improved_zero.BPZeroUnidirectionExtractor,
+                                              'bp_unidirection_improved_zero')
 
 vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder,
                                     scaling.VariableBitsScalingExtractor,

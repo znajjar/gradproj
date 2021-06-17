@@ -22,13 +22,12 @@ class UnidirectionEmbedder:
         return self._process(iterations)
 
     def _process(self, iterations=1):
-        iteration = 0
         pure_embedded_data = 0
 
         P_L, P_H = self._get_peaks()
         buffer_data, extra_space = self._get_buffer_data(P_L, P_H)
         if not self._index:
-            extra_space -= HEADER_PIXELS
+            extra_space -= HEADER_SIZE
 
         while extra_space >= 0 and self._index < iterations:
             self._fill_buffer(buffer_data)
@@ -48,7 +47,7 @@ class UnidirectionEmbedder:
         return embedded_image, self._index, pure_embedded_data
 
     def _initialize(self):
-        self._header_pixels, self._body_pixels = get_header_and_body(self._cover_image, HEADER_PIXELS)
+        self._header_pixels, self._body_pixels = get_header_and_body(self._cover_image, HEADER_SIZE)
         self._buffer = BoolDataBuffer(self._get_header_LSBs(), self._hidden_data)
 
         self._old_P_L = 0
@@ -61,7 +60,7 @@ class UnidirectionEmbedder:
     def _get_buffer_data(self, P_L, P_H):
         location_map = self._get_location_map(P_L, P_H)
         overhead_data = self._get_overhead(self._old_P_L, self._old_P_H, location_map)
-        return overhead_data, self._get_capacity(P_H) - len(overhead_data)
+        return overhead_data, self._hist[P_H] - len(overhead_data)
 
     def _fill_buffer(self, buffer_data):
         self._buffer.add(buffer_data)
@@ -95,7 +94,7 @@ class UnidirectionEmbedder:
                 integer_to_binary(P_L, PEAK_BITS),
                 integer_to_binary(P_H, PEAK_BITS),
                 integer_to_binary(flag, FLAG_BIT),
-                integer_to_binary(compressed_map.size, COMPRESSED_DATA_LENGTH_BITS),
+                integer_to_binary(compressed_map.size//BITS_PER_BYTE, COMPRESSED_DATA_LENGTH_BITS),
                 compressed_map], axis=None).astype(bool)
         else:
             return np.concatenate([
@@ -104,14 +103,11 @@ class UnidirectionEmbedder:
                 integer_to_binary(flag, FLAG_BIT),
                 location_map], axis=None).astype(bool)
 
-    def _get_capacity(self, P_H):
-        return self._hist[P_H]
-
     def _shift_histogram(self, P_L, P_H):
         self._shift_in_between(P_L, P_H)
 
         embedding_pixels = self._body_pixels == P_H
-        embedded_data = self._buffer.next(self._get_capacity(P_H))
+        embedded_data = self._buffer.next(self._hist[P_H])
         d = get_shift_direction(P_L, P_H)
         self._body_pixels[embedding_pixels] = self._body_pixels[embedding_pixels] + d * embedded_data
 
@@ -122,7 +118,7 @@ class UnidirectionEmbedder:
     def _embed_in_LSB(self):
         LSBs = np.concatenate([integer_to_binary(self._old_P_L, PEAK_BITS),
                                integer_to_binary(self._old_P_H, PEAK_BITS)])
-        for i in range(0, HEADER_PIXELS):
+        for i in range(0, HEADER_SIZE):
             self._header_pixels[i] = set_lsb(self._header_pixels[i], LSBs[i])
 
     def __iter__(self):
@@ -155,7 +151,7 @@ class UnidirectionExtractor:
         self._direction = None
 
     def extract(self, embedded_image):
-        self._header_pixels, self._body_pixels = get_header_and_body(embedded_image, HEADER_PIXELS)
+        self._header_pixels, self._body_pixels = get_header_and_body(embedded_image, HEADER_SIZE)
         P_L, P_H = get_peaks_from_header(self._header_pixels, PEAK_BITS)
         iterations = 0
         hidden_data = []
@@ -168,7 +164,7 @@ class UnidirectionExtractor:
             self._fix_P_L_bin(P_L)
 
             if new_P_L == 0 and new_P_H == 0:
-                self._fix_LSB(self._buffer.next(HEADER_PIXELS))
+                self._fix_LSB(self._buffer.next(HEADER_SIZE))
 
             hidden_data.extend(self._buffer.next(-1))
             P_L = new_P_L
@@ -203,11 +199,11 @@ class UnidirectionExtractor:
     def _get_location_map(self, P_L):
         is_map_compressed = self._buffer.next(FLAG_BIT)[0]
         if is_map_compressed:
-            map_size = binary_to_integer(self._buffer.next(COMPRESSED_DATA_LENGTH_BITS))
+            map_size = binary_to_integer(self._buffer.next(COMPRESSED_DATA_LENGTH_BITS)) * BITS_PER_BYTE
             return bytes_to_bits(self._decompress(bits_to_bytes(self._buffer.next(map_size))))
         else:
             return self._buffer.next(np.sum(self._body_pixels == P_L))
 
     def _fix_LSB(self, LSBs):
-        for i in range(0, HEADER_PIXELS):
+        for i in range(0, HEADER_SIZE):
             self._header_pixels[i] = set_lsb(self._header_pixels[i], LSBs[i])

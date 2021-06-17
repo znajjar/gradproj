@@ -1,3 +1,4 @@
+from bidirectional.configurations import *
 from util import *
 
 
@@ -17,7 +18,7 @@ class OriginalEmbedder:
     def embed(self, iterations):
         if iterations > self._ITERATIONS_LIMIT:
             raise ValueError(self._ITERATIONS_LIMIT_EXCEEDED_ERROR)
-        self._header_pixels, self._processed_pixels = get_header_and_body(self._cover_image)
+        self._header_pixels, self._processed_pixels = get_header_and_body(self._cover_image, HEADER_SIZE)
         is_modified = self._preprocess(iterations)
         self._fill_buffer(is_modified)
         self._process(iterations)
@@ -116,7 +117,7 @@ class OriginalExtractor:
 
     def extract(self, embedded_image):
         embedded_image = embedded_image.copy()
-        self._header_pixels, self._processed_pixels = get_header_and_body(embedded_image, 17)
+        self._header_pixels, self._processed_pixels = get_header_and_body(embedded_image, HEADER_SIZE)
 
         iterations = self._process()
         hidden_data, is_modified = self._process_data(iterations)
