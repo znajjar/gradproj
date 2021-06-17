@@ -13,8 +13,13 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         self._minimum_closest_P_L = None
 
     def _shift_in_between(self, P_L, P_H):
-        self._body_pixels[self._body_pixels == P_L] = self._minimum_closest_P_L[P_L]
+        self._move_bin(P_L)                                                # Not needed
         super()._shift_in_between(P_L, P_H)
+
+    def _move_bin(self, P_L):
+        self._body_pixels[self._body_pixels == P_L] = self._minimum_closest_P_L[P_L]
+        self._hist[self._minimum_closest_P_L[P_L]] += self._hist[P_L]  # if self._minimum_closest_P_L[P_L] == P_H
+        self._hist[P_L] = 0
 
     def _get_location_map(self, P_L, P_H):
         combined_bins = np.logical_or(self._body_pixels == self._minimum_closest_P_L[P_L], self._body_pixels == P_L)
