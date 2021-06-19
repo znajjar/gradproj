@@ -13,7 +13,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         self._minimum_closest_P_L = None
 
     def _shift_in_between(self, P_L, P_H):
-        self._move_bin(P_L)                                                # Not needed
+        self._move_bin(P_L)  # Not needed
         super()._shift_in_between(P_L, P_H)
 
     def _move_bin(self, P_L):
@@ -32,7 +32,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
     def _insert_offset_bits(self, overhead_data):
         offset_bits = self._get_peak_offset()
-        insert_index = 2*PEAK_BITS
+        insert_index = 2 * PEAK_BITS
         return np.concatenate([overhead_data[:insert_index], offset_bits, overhead_data[insert_index:]])
 
     def _get_peak_offset(self):
@@ -42,7 +42,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
     def _get_peaks(self):
         self._hist = self._get_hist()
-        self._minimum_closest_P_L = self._get_minimum_closest_by_N(2**PLACEMENT_BITS)
+        self._minimum_closest_P_L = self._get_minimum_closest_by_N(2 ** PLACEMENT_BITS)
         current_brightness = np.mean(self._body_pixels)
         if self._original_brightness - current_brightness > BRIGHTNESS_THRESHOLD:
             self._P_L, self._P_H = self._get_peaks_difference_right()
@@ -61,28 +61,29 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         return minimum_closest
 
     def _get_minimum_closest_pixel_value(self, pixel_value, N):
-        old_value = self._hist[pixel_value]
-        self._hist[pixel_value] = MAX_FREQUENCY
-        candidates = self._hist[max(0, pixel_value - N):min(MAX_PIXEL_VALUE, pixel_value + N) + 1]
+        candidates = np.concatenate([
+            self._hist[max(0, pixel_value - N): pixel_value],
+            [MAX_FREQUENCY],
+            self._hist[pixel_value + 1: min(MAX_PIXEL_VALUE, pixel_value + N) + 1]
+        ])
         candidates = np.flatnonzero(candidates == candidates.min()) + max(0, pixel_value - N)
-        self._hist[pixel_value] = old_value
         return find_closest_candidate(candidates, pixel_value)
 
     def _get_peaks_difference_right(self):
-        minimum_closest_right = self._get_minimum_closest_right()
-        max_diff_right = self._get_embedding_capacity(minimum_closest_right, np.arange(0, MAX_PIXEL_VALUE + 1))
+        best_P_L_for_P_H_right = self._get_minimum_closest_right()
+        max_diff_right = self._get_embedding_capacity(best_P_L_for_P_H_right, np.arange(0, MAX_PIXEL_VALUE + 1))
         best_P_H = max_diff_right[:MAX_PIXEL_VALUE].argmax()
-        best_P_L = minimum_closest_right[best_P_H]
+        best_P_L = best_P_L_for_P_H_right[best_P_H]
 
         return best_P_L, best_P_H
 
     def _get_minimum_closest_right(self):
         minimum_closest_right = np.zeros(MAX_PIXEL_VALUE + 1, dtype=np.uint8)
         min_so_far = MAX_PIXEL_VALUE
-        min_sum = self._hist[MAX_PIXEL_VALUE] + self._hist[self._minimum_closest_P_L[MAX_PIXEL_VALUE]]
+        min_sum = self._get_min_location_map_size(MAX_PIXEL_VALUE)
         for left_peak in range(MAX_PIXEL_VALUE - 1, -1, -1):
             minimum_closest_right[left_peak] = min_so_far
-            new_sum = self._hist[left_peak] + self._hist[self._minimum_closest_P_L[left_peak]]
+            new_sum = self._get_min_location_map_size(left_peak)
             if min_sum >= new_sum:
                 min_sum = new_sum
                 min_so_far = left_peak
@@ -90,25 +91,28 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         return minimum_closest_right
 
     def _get_peaks_difference_left(self):
-        minimum_closest_left = self._get_minimum_closest_left()
-        max_diff_left = self._get_embedding_capacity(minimum_closest_left, np.arange(0, MAX_PIXEL_VALUE + 1))
+        best_P_L_for_P_H_left = self._get_minimum_closest_left()
+        max_diff_left = self._get_embedding_capacity(best_P_L_for_P_H_left, np.arange(0, MAX_PIXEL_VALUE + 1))
         best_P_H = max_diff_left[1:].argmax() + 1
-        best_P_L = minimum_closest_left[best_P_H]
+        best_P_L = best_P_L_for_P_H_left[best_P_H]
 
         return best_P_L, best_P_H
 
     def _get_minimum_closest_left(self):
         minimum_closest_left = np.zeros(MAX_PIXEL_VALUE + 1, dtype=np.uint8)
         min_so_far = 0
-        min_sum = self._hist[0] + self._hist[self._minimum_closest_P_L[0]]
+        min_sum = self._get_min_location_map_size(0)
         for right_peak in range(1, MAX_PIXEL_VALUE + 1):
             minimum_closest_left[right_peak] = min_so_far
-            new_sum = self._hist[right_peak] + self._hist[self._minimum_closest_P_L[right_peak]]
+            new_sum = self._get_min_location_map_size(right_peak)
             if min_sum >= new_sum:
                 min_sum = new_sum
                 min_so_far = right_peak
 
         return minimum_closest_left
+
+    def _get_min_location_map_size(self, P_L):
+        return self._hist[P_L] + self._hist[self._minimum_closest_P_L[P_L]]
 
     def _get_best_difference_peaks(self):
         P_L_left, P_H_left = self._get_peaks_difference_left()
@@ -126,6 +130,7 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         percentage = np.minimum(P_L_frequency, placement_peak_frequency) / location_map_size
         compressed_map_size = estimate_compressed_map_size(location_map_size, percentage)
 
+        # return self._hist[P_H] - location_map_size
         return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
 
 
@@ -160,10 +165,12 @@ class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
 
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
+    import cv2
 
-    for i in range(1, 50):
-        print(f'Filename: {i}.gif')
-        image = read_image(f'res/dataset-50/{i}.gif')
+    for i in range(1, 25):
+        filename = f'kodim{str(i).zfill(2)}_org'
+        print(f'Filename: {filename}.png')
+        image = read_image(f'res/kodek_dataset/{filename}.png')
         np.random.seed(2115)
         data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
         embedder = ImprovedBPUnidirectionEmbedder(image, data)
@@ -171,9 +178,14 @@ if __name__ == '__main__':
         embedded_image, iterations, pure_embedded_data = embedder.embed(1000)
         print(f'iterations: {iterations}')
         print(f'rate: {pure_embedded_data / image.size}')
-        print(f'mean difference: {abs(embedded_image.mean() - image.mean())}')
-        print(f'STD: {embedded_image.std()}')
+        print(f'Abs change in mean: {abs(embedded_image.mean() - image.mean())}')
+        print(f'Change in STD: {embedded_image.std() - image.std()}')
         print(f'SSIM: {structural_similarity(image, embedded_image)}')
+
+        cv2.imwrite(f'out/bp_uni_improved/{filename}.png', embedded_image)
+
+        if i == 15:
+            show_hist(embedded_image)
 
         extractor = ImprovedBPUnidirectionExtractor()
         print(f'Correct extraction? {np.sum(np.abs(extractor.extract(embedded_image)[0] - image))}')

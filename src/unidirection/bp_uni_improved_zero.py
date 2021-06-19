@@ -134,20 +134,24 @@ class BPZeroUnidirectionExtractor(ImprovedBPUnidirectionExtractor):
 
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
+    import cv2
 
-    for i in range(1, 50):
-        print(f'Filename: {i}.gif')
-        image = read_image(f'res/dataset-50/{i}.gif')
+    for i in range(1, 25):
+        filename = f'kodim{str(i).zfill(2)}_org'
+        print(f'Filename: {filename}.png')
+        image = read_image(f'res/kodek_dataset/{filename}.png')
         np.random.seed(2115)
         data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
         embedder = BPZeroUnidirectionEmbedder(image, data)
 
-        embedded_image, iterations, pure_embedded_data = embedder.embed(500)
+        embedded_image, iterations, pure_embedded_data = embedder.embed(1000)
         print(f'iterations: {iterations}')
         print(f'rate: {pure_embedded_data / image.size}')
-        print(f'mean difference: {abs(embedded_image.mean() - image.mean())}')
-        print(f'STD: {embedded_image.std()}')
+        print(f'Abs change in mean: {abs(embedded_image.mean() - image.mean())}')
+        print(f'Change in STD: {embedded_image.std() - image.std()}')
         print(f'SSIM: {structural_similarity(image, embedded_image)}')
+
+        cv2.imwrite(f'out/bp_uni_improved_zero/{filename}.png', embedded_image)
 
         extractor = BPZeroUnidirectionExtractor()
         print(f'Correct extraction? {np.sum(np.abs(extractor.extract(embedded_image)[0] - image))}')

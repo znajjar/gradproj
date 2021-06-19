@@ -121,13 +121,14 @@ def get_peaks(pixels, n=2):
     return np.sort(hist.argsort()[-n:])
 
 
-def show_hist(image):
+def show_hist(image, title=''):
     bins = np.bincount(image.ravel())
     hist = np.zeros((MAX_PIXEL_VALUE + 1,))
     hist[:len(bins)] = bins
     plt.figure()
     plt.xlabel('Intensity Value')
     plt.ylabel('Count')
+    plt.title(title)
     plt.hist(np.arange(MAX_PIXEL_VALUE + 1), MAX_PIXEL_VALUE + 1, weights=hist)
     plt.show()
 

@@ -34,20 +34,28 @@ class BPUnidirectionExtractor(UnidirectionExtractor):
 
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
+    import cv2
 
-    image = read_image('res/lena_gray_512.png')
-    np.random.seed(2115)
-    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = BPUnidirectionEmbedder(image, data)
+    for i in range(1, 25):
+        filename = f'kodim{str(i).zfill(2)}_org'
+        print(f'Filename: {filename}.png')
+        image = read_image(f'res/kodek_dataset/{filename}.png')
+        np.random.seed(2115)
+        data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+        embedder = BPUnidirectionEmbedder(image, data)
 
-    embedded_image, iterations, hidden_data_size = embedder.embed()
+        embedded_image, iterations, pure_embedded_data = embedder.embed(1000)
+        print(f'iterations: {iterations}')
+        print(f'rate: {pure_embedded_data / image.size}')
+        print(f'Abs change in mean: {abs(embedded_image.mean() - image.mean())}')
+        print(f'Change in STD: {embedded_image.std() - image.std()}')
+        print(f'SSIM: {structural_similarity(image, embedded_image)}')
 
-    print(f'Mean difference: {abs(np.mean(embedded_image) - np.mean(image))}')
-    print(f'SSIM: {structural_similarity(image, embedded_image)}')
-    print(f'Old STD: {np.std(image)}')
-    print(f'New STD: {np.std(embedded_image)}')
-    print(f'Rate: {hidden_data_size / image.size}')
+        cv2.imwrite(f'out/bp_uni/{filename}.png', embedded_image)
 
-    show_hist(embedded_image)
+        if i == 15:
+            show_hist(embedded_image)
 
-    Image.fromarray(embedded_image).save('out/bp_vb_scaling.png')
+        extractor = BPUnidirectionExtractor()
+        print(f'Correct extraction? {np.sum(np.abs(extractor.extract(embedded_image)[0] - image))}')
+        print()
