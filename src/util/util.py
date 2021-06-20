@@ -6,6 +6,8 @@ import PIL.Image as Image
 import matplotlib.pyplot as plt
 import numpy as np
 
+from skimage.metrics import structural_similarity
+
 IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'bmp', 'jpg', 'gif']
 MAX_PIXEL_VALUE = 255
 EPS = 0.00000005
@@ -116,6 +118,10 @@ def read_image(path: str) -> np.ndarray:
     return np.uint8(Image.open(path).getchannel(0)).copy()
 
 
+def save_image(image, path: str):
+    Image.fromarray(image).save(path)
+
+
 def get_peaks(pixels, n=2):
     hist = np.bincount(pixels)
     return np.sort(hist.argsort()[-n:])
@@ -201,3 +207,23 @@ def get_peaks_from_header(header_pixels: np.ndarray, peak_size: int = 8) -> (np.
 
 def is_image(image_path: str) -> bool:
     return os.path.isfile(image_path) and os.path.splitext(image_path)[1][1:] in IMAGE_EXTENSIONS
+
+
+def test_algorithm_by_directory(embedder, extractor, directory_path: str, data):
+    for filename in os.listdir(directory_path):
+        joined_path = os.path.join(directory_path, filename)
+        if is_image(joined_path):
+            print(f'Filename: {filename}')
+
+            image = read_image(joined_path)
+            embedded_image, iterations, pure_embedded_data = embedder(image, data).embed(1000)
+            print(f'iterations: {iterations}')
+            print(f'rate: {pure_embedded_data / image.size}')
+            print(f'Abs change in mean: {abs(embedded_image.mean() - image.mean())}')
+            print(f'Change in STD: {embedded_image.std() - image.std()}')
+            print(f'SSIM: {structural_similarity(image, embedded_image)}')
+
+            save_image(embedded_image, f'out/{filename}')
+
+            print(f'Correct extraction? {np.sum(np.abs(extractor().extract(embedded_image)[0] - image))}')
+            print()

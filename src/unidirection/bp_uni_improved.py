@@ -13,13 +13,13 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
         self._minimum_closest_P_L = None
 
     def _shift_in_between(self, P_L, P_H):
-        self._move_bin(P_L)  # Not needed
+        self._move_bin(P_L)
         super()._shift_in_between(P_L, P_H)
 
     def _move_bin(self, P_L):
         self._body_pixels[self._body_pixels == P_L] = self._minimum_closest_P_L[P_L]
-        self._hist[self._minimum_closest_P_L[P_L]] += self._hist[P_L]  # if self._minimum_closest_P_L[P_L] == P_H
-        self._hist[P_L] = 0
+        self._hist[self._minimum_closest_P_L[P_L]] += self._hist[P_L]   # if self._minimum_closest_P_L[P_L] == P_H
+        self._hist[P_L] = 0                                             # Not needed
 
     def _get_location_map(self, P_L, P_H):
         combined_bins = np.logical_or(self._body_pixels == self._minimum_closest_P_L[P_L], self._body_pixels == P_L)
@@ -164,29 +164,8 @@ class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
 
 
 if __name__ == '__main__':
-    from skimage.metrics import structural_similarity
-    import cv2
+    images_path = f'res/under_over_exposed'
+    np.random.seed(2115)
+    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+    test_algorithm_by_directory(ImprovedBPUnidirectionEmbedder, ImprovedBPUnidirectionExtractor, images_path, data)
 
-    for i in range(1, 25):
-        filename = f'kodim{str(i).zfill(2)}_org'
-        print(f'Filename: {filename}.png')
-        image = read_image(f'res/kodek_dataset/{filename}.png')
-        np.random.seed(2115)
-        data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-        embedder = ImprovedBPUnidirectionEmbedder(image, data)
-
-        embedded_image, iterations, pure_embedded_data = embedder.embed(1000)
-        print(f'iterations: {iterations}')
-        print(f'rate: {pure_embedded_data / image.size}')
-        print(f'Abs change in mean: {abs(embedded_image.mean() - image.mean())}')
-        print(f'Change in STD: {embedded_image.std() - image.std()}')
-        print(f'SSIM: {structural_similarity(image, embedded_image)}')
-
-        cv2.imwrite(f'out/bp_uni_improved/{filename}.png', embedded_image)
-
-        if i == 15:
-            show_hist(embedded_image)
-
-        extractor = ImprovedBPUnidirectionExtractor()
-        print(f'Correct extraction? {np.sum(np.abs(extractor.extract(embedded_image)[0] - image))}')
-        print()

@@ -94,7 +94,7 @@ class UnidirectionEmbedder:
                 integer_to_binary(P_L, PEAK_BITS),
                 integer_to_binary(P_H, PEAK_BITS),
                 integer_to_binary(flag, FLAG_BIT),
-                integer_to_binary(compressed_map.size//BITS_PER_BYTE, COMPRESSED_DATA_LENGTH_BITS),
+                integer_to_binary(compressed_map.size // BITS_PER_BYTE, COMPRESSED_DATA_LENGTH_BITS),
                 compressed_map], axis=None).astype(bool)
         else:
             return np.concatenate([
@@ -207,3 +207,10 @@ class UnidirectionExtractor:
     def _fix_LSB(self, LSBs):
         for i in range(0, HEADER_SIZE):
             self._header_pixels[i] = set_lsb(self._header_pixels[i], LSBs[i])
+
+
+if __name__ == '__main__':
+    images_path = f'res/under_over_exposed'
+    np.random.seed(2115)
+    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+    test_algorithm_by_directory(UnidirectionEmbedder, UnidirectionExtractor, images_path, data)
