@@ -18,8 +18,8 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
     def _move_bin(self, P_L):
         self._body_pixels[self._body_pixels == P_L] = self._minimum_closest_P_L[P_L]
-        self._hist[self._minimum_closest_P_L[P_L]] += self._hist[P_L]   # if self._minimum_closest_P_L[P_L] == P_H
-        self._hist[P_L] = 0                                             # Not needed
+        self._hist[self._minimum_closest_P_L[P_L]] += self._hist[P_L]  # if self._minimum_closest_P_L[P_L] == P_H
+        self._hist[P_L] = 0  # Not needed
 
     def _get_location_map(self, P_L, P_H):
         combined_bins = np.logical_or(self._body_pixels == self._minimum_closest_P_L[P_L], self._body_pixels == P_L)
@@ -124,14 +124,15 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
             return P_L_right, P_H_right
 
     def _get_embedding_capacity(self, P_L, P_H):
-        P_L_frequency = self._hist[P_L]
-        placement_peak_frequency = self._hist[self._minimum_closest_P_L[P_L]]
-        location_map_size = np.asarray(P_L_frequency + placement_peak_frequency, dtype=float)
-        percentage = np.minimum(P_L_frequency, placement_peak_frequency) / location_map_size
+        return self._hist[P_H] - self._get_location_map_size(P_L, self._minimum_closest_P_L[P_L])
+
+    def _get_location_map_size(self, P_L, P_C):
+        location_map_size = np.asarray(self._hist[P_L] + self._hist[P_C], dtype=float)
+        percentage = np.minimum(self._hist[P_L], self._hist[P_C]) / location_map_size
         compressed_map_size = estimate_compressed_map_size(location_map_size, percentage)
 
-        # return self._hist[P_H] - location_map_size
-        return self._hist[P_H] - np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
+        # return location_map_size
+        return np.minimum(location_map_size, compressed_map_size + COMPRESSED_DATA_LENGTH_BITS)
 
 
 class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
@@ -164,8 +165,7 @@ class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
 
 
 if __name__ == '__main__':
-    images_path = f'res/under_over_exposed'
+    images_path = f'res/kodek_dataset'
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     test_algorithm_by_directory(ImprovedBPUnidirectionEmbedder, ImprovedBPUnidirectionExtractor, images_path, data)
-

@@ -39,7 +39,7 @@ class BPVariableBitsScalingExtractor(BPScalingExtractor, VariableBitsScalingExtr
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
 
-    image = read_image('res/lena_gray_512.png')
+    image = read_image('res/lena.png')
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
     embedder = BPVariableBitsScalingEmbedder(image, data)
