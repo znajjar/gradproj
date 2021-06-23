@@ -135,7 +135,6 @@ class VariableBitsScalingEmbedder(ScalingEmbedder):
         is_rounded = self.get_is_rounded(original_pixels, self._processed_pixels)
         is_rounded_bits = BoolDataBuffer()
 
-        print(np.unique(is_rounded))
         # map_sizes_bits = integers_to_binary(is_rounded, 4)
 
         for value in range(256):

@@ -166,7 +166,7 @@ class UnidirectionExtractor:
             if new_P_L == 0 and new_P_H == 0:
                 self._fix_LSB(self._buffer.next(HEADER_SIZE))
 
-            hidden_data.extend(self._buffer.next(-1))
+            hidden_data.extend(self._buffer.next(-1)[::-1])
             P_L = new_P_L
             P_H = new_P_H
             iterations += 1

@@ -8,7 +8,7 @@ from skimage.metrics import structural_similarity
 
 from rdh_algorithm import *
 from util.measure import Measure
-from util.util import bits_to_bytes, read_image, is_image
+from util.util import *
 from write_data import RunStats, ImageStats, write_data
 
 # IMAGES_PATH = 'res/dataset-50/'
@@ -36,8 +36,8 @@ RDH_ALGORITHMS = [
     # vo_original_algorithm,
     # bp_scaling_algorithm,
     # uni_algorithm,
-    bp_uni_algorithm_improved,
-    # bp_uni_algorithm_improved_zero
+    # bp_uni_algorithm_improved,
+    nb_original_algorithm,
 ]
 
 np.random.seed(2115)
@@ -58,14 +58,16 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
 
         for embedded_image, iterations_count, _ in embedder:
             print(f'{iterations_count} iterations:')
-            if iterations_count == 9:
-                print()
-
             try:
                 recovered_image, extraction_iterations, extracted_data = Measure(extractor.extract, print_time=True)(
                     embedded_image)
                 is_successful = \
-                    not np.any(original_image - recovered_image) and extraction_iterations == iterations_count
+                    not np.any(original_image - recovered_image) and \
+                    extraction_iterations == iterations_count
+                correct_recovered_data = extracted_data[:-1] == data[:len(extracted_data) - 1]
+                if not correct_recovered_data:
+                    print('recovered data is incorrect')
+                    is_successful = False
                 hidden_data_size = len(extracted_data) * 8
             except Exception:
                 traceback.print_exc()

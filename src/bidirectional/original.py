@@ -223,17 +223,54 @@ class ValueOrderedOriginalExtractor(OriginalExtractor):
                 self._processed_pixels[is_modified_value] = rec_value
 
 
-def embed(image, data, iterations=64):
-    return OriginalEmbedder(image, data).embed(iterations)
+class NeighboringBinsEmbedder(OriginalEmbedder):
+    def _preprocess(self, iterations):
+        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
+
+        lower_bound = self._processed_pixels < 2 * iterations
+        lower_bound_modified = np.logical_and(lower_bound, self._processed_pixels % 2 == 0)
+
+        upper_bound = self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations
+        upper_bound_modified = np.logical_and(upper_bound, self._processed_pixels % 2 == 1)
+
+        is_modified |= lower_bound_modified
+        is_modified |= upper_bound_modified
+
+        self._processed_pixels[lower_bound_modified] += 1
+        self._processed_pixels[upper_bound_modified] -= 1
+
+        self._processed_pixels[lower_bound] += (
+                ((2 * iterations - 1) - self._processed_pixels[lower_bound]) / 2).astype(np.uint8)
+        self._processed_pixels[upper_bound] -= ((self._processed_pixels[upper_bound] - (
+                MAX_PIXEL_VALUE - 2 * iterations + 1)) / 2).astype(np.uint8)
+
+        is_modifiable = np.logical_or(self._processed_pixels < 2 * iterations,
+                                      self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations)
+        is_modified = is_modified[is_modifiable]
+        return is_modified
+
+
+class NeighboringBinsExtractor(OriginalExtractor):
+    def _recover_image(self, iterations, is_modified):
+        lower_bound = self._processed_pixels < 2 * iterations
+        upper_bound = self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations
+
+        self._processed_pixels[lower_bound] -= (
+                ((2 * iterations - 1) - self._processed_pixels[lower_bound])).astype(np.uint8)
+        self._processed_pixels[upper_bound] += ((self._processed_pixels[upper_bound] - (
+                MAX_PIXEL_VALUE - 2 * iterations + 1))).astype(np.uint8)
+
+        self._processed_pixels[np.logical_and(is_modified, self._processed_pixels < 128)] -= 1
+        self._processed_pixels[np.logical_and(is_modified, self._processed_pixels >= 128)] += 1
 
 
 if __name__ == '__main__':
     import cv2
 
-    image = read_image('res/f-16.png')
+    image = read_image('res/dataset-50/2.gif')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = OriginalEmbedder(image.copy(), data)
-    extractor = OriginalExtractor()
+    embedder = NeighboringBinsEmbedder(image.copy(), data)
+    extractor = NeighboringBinsExtractor()
 
     embedded, hidden_data_size, _ = embedder.embed(64)
     cv2.imwrite('out/embedded.png', embedded)

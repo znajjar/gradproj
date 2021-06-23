@@ -103,11 +103,6 @@ def get_mapped_values(original_max: int, scaled_max: int) -> np.ndarray:
     recovered_values = scale_to(scaled_values, original_max)
     mapped_values = scaled_values[np.where(recovered_values - og_values != 0)]
 
-    values_freq = np.bincount(scaled_values, minlength=256)
-
-    print(np.count_nonzero(values_freq > 1))
-    print(len(mapped_values))
-
     if not len(mapped_values):
         mapped_values = np.array([-1])
 

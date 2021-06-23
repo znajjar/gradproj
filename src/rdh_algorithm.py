@@ -43,3 +43,7 @@ vo_scaling_algorithm = RdhAlgorithm(scaling.ValueOrderScalingEmbedder,
 vo_original_algorithm = RdhAlgorithm(original.ValueOrderedOriginalEmbedder,
                                      original.ValueOrderedOriginalExtractor,
                                      'vo_original')
+
+nb_original_algorithm = RdhAlgorithm(original.NeighboringBinsEmbedder,
+                                     original.NeighboringBinsExtractor,
+                                     'nb_original')
