@@ -120,7 +120,8 @@ class OriginalExtractor:
         self._header_pixels, self._processed_pixels = get_header_and_body(embedded_image, HEADER_SIZE)
 
         iterations = self._process()
-        hidden_data, is_modified = self._process_data(iterations)
+        hidden_data, is_modified_packed = self._process_data(iterations)
+        is_modified = self._unpack_is_modified(is_modified_packed, iterations)
         self._recover_image(iterations, is_modified)
 
         cover_image = assemble_image(self._header_pixels, self._processed_pixels, embedded_image.shape)
@@ -157,10 +158,6 @@ class OriginalExtractor:
         return iterations
 
     def _process_data(self, iterations):
-        is_modifiable = np.logical_or(self._processed_pixels < 2 * iterations,
-                                      self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations)
-        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
-
         for index, value in np.ndenumerate(self._header_pixels):
             self._header_pixels[index] = set_lsb(value, self._buffer.next())
 
@@ -168,10 +165,18 @@ class OriginalExtractor:
         is_modified_compressed_size = binary_to_integer(is_modified_size_bits)
         is_modified_compressed = self._buffer.next(is_modified_compressed_size * 8)
         is_modified_minimized_bytes = self._decompress(bits_to_bytes(is_modified_compressed))
-        is_modified_minimize_with_extra_bits = bytes_to_bits(is_modified_minimized_bytes)
-        is_modified[is_modifiable] = is_modified_minimize_with_extra_bits[:np.count_nonzero(is_modifiable)]
+        is_modified = bytes_to_bits(is_modified_minimized_bytes)
         hidden_data = bits_to_bytes(self._buffer.next(-1))
         return hidden_data, is_modified
+
+    def _unpack_is_modified(self, is_modified_packed, iterations):
+        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
+
+        is_modifiable = np.logical_or(self._processed_pixels < 2 * iterations,
+                                      self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations)
+
+        is_modified[is_modifiable] = is_modified_packed[:np.count_nonzero(is_modifiable)]
+        return is_modified
 
     def _recover_image(self, iterations, is_modified):
         self._processed_pixels[np.logical_and(is_modified, self._processed_pixels < 128)] -= iterations
@@ -198,20 +203,11 @@ class ValueOrderedOriginalEmbedder(OriginalEmbedder):
 
 
 class ValueOrderedOriginalExtractor(OriginalExtractor):
-    def _process_data(self, iterations):
-        for index, value in np.ndenumerate(self._header_pixels):
-            self._header_pixels[index] = set_lsb(value, self._buffer.next())
+    def _unpack_is_modified(self, is_modified_packed, iterations):
+        return is_modified_packed
 
-        is_modified_size_bits = self._buffer.next(COMPRESSED_DATA_LENGTH_BITS)
-        is_modified_compressed_size = binary_to_integer(is_modified_size_bits)
-        is_modified_compressed = self._buffer.next(is_modified_compressed_size * 8)
-        is_modified_minimized_bytes = self._decompress(bits_to_bytes(is_modified_compressed))
-        is_modified_minimize_with_extra_bits = bytes_to_bits(is_modified_minimized_bytes)
-        hidden_data = bits_to_bytes(self._buffer.next(-1))
-        return hidden_data, is_modified_minimize_with_extra_bits
-
-    def _recover_image(self, iterations, is_modified):
-        is_modified = BoolDataBuffer(is_modified)
+    def _recover_image(self, iterations, is_modified_decompressed):
+        is_modified_decompressed = BoolDataBuffer(is_modified_decompressed)
         for value in range(256):
             pixels_with_value = self._processed_pixels == value
             pixels_count = np.count_nonzero(pixels_with_value)
@@ -219,7 +215,7 @@ class ValueOrderedOriginalExtractor(OriginalExtractor):
             rec_value = value + sign * iterations
             if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
                 is_modified_value = np.zeros_like(pixels_with_value)
-                is_modified_value[pixels_with_value] = (is_modified.next(pixels_count))
+                is_modified_value[pixels_with_value] = (is_modified_decompressed.next(pixels_count))
                 self._processed_pixels[is_modified_value] = rec_value
 
 
@@ -251,17 +247,17 @@ class NeighboringBinsEmbedder(OriginalEmbedder):
 
 
 class NeighboringBinsExtractor(OriginalExtractor):
-    def _recover_image(self, iterations, is_modified):
+    def _recover_image(self, iterations, is_modified_decompressed):
         lower_bound = self._processed_pixels < 2 * iterations
         upper_bound = self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations
 
         self._processed_pixels[lower_bound] -= (
-                ((2 * iterations - 1) - self._processed_pixels[lower_bound])).astype(np.uint8)
+            ((2 * iterations - 1) - self._processed_pixels[lower_bound])).astype(np.uint8)
         self._processed_pixels[upper_bound] += ((self._processed_pixels[upper_bound] - (
                 MAX_PIXEL_VALUE - 2 * iterations + 1))).astype(np.uint8)
 
-        self._processed_pixels[np.logical_and(is_modified, self._processed_pixels < 128)] -= 1
-        self._processed_pixels[np.logical_and(is_modified, self._processed_pixels >= 128)] += 1
+        self._processed_pixels[np.logical_and(is_modified_decompressed, self._processed_pixels < 128)] -= 1
+        self._processed_pixels[np.logical_and(is_modified_decompressed, self._processed_pixels >= 128)] += 1
 
 
 if __name__ == '__main__':
@@ -275,11 +271,11 @@ if __name__ == '__main__':
     embedded, hidden_data_size, _ = embedder.embed(64)
     cv2.imwrite('out/embedded.png', embedded)
 
-    extracted, iterations, hidden_data = extractor.extract(embedded)
+    extracted, iteration_count, extracted_data = extractor.extract(embedded)
     cv2.imwrite('out/extracted.png', extracted)
 
     print(f'difference: {np.sum(np.abs(image - extracted))} \n'
-          f'hidden data size: {8 * len(hidden_data)}')
+          f'hidden data size: {8 * len(extracted_data)}')
 
     # for it in embedder:
     #     print(it)
