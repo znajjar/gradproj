@@ -14,7 +14,7 @@ from write_data import RunStats, ImageStats, write_data
 # IMAGES_PATH = 'res/dataset-50/'
 SAVE_IMAGES = False
 IMAGES_PATH = 'res/dataset-50/'
-original_images = []  # path relative to ORIGINAL_IMAGES_PATH
+original_images = ['1.gif']  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
 if not original_images:

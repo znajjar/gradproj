@@ -53,9 +53,12 @@ class ScalingExtractor(OriginalExtractor):
         is_modified_compressed_size = binary_to_integer(is_modified_size_bits)
         is_modified_compressed = self._buffer.next(is_modified_compressed_size * 8)
         is_modified_minimized_bytes = self._decompress(bits_to_bytes(is_modified_compressed))
-        is_rounded = bytes_to_bits(is_modified_minimized_bytes)[:self._processed_pixels.size]
+        is_rounded = bytes_to_bits(is_modified_minimized_bytes)
         hidden_data = bits_to_bytes(self._buffer.next(-1))
         return hidden_data, is_rounded
+
+    def _unpack_is_modified(self, is_modified_packed, iterations):
+        return is_modified_packed[:self._processed_pixels.size]
 
     def _recover_image(self, iterations, is_rounded):
         self._processed_pixels -= iterations
@@ -226,15 +229,15 @@ def resize_values(pixels, sizes_map):
 if __name__ == '__main__':
     import cv2
 
-    im = read_image('res/dataset-50/10.gif')
-    embedder = VariableBitsScalingEmbedder(im, bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0), deflate)
+    im = read_image('res/f-16.png')
+    embedder = ScalingEmbedder(im, bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0), deflate)
     extractor = VariableBitsScalingExtractor()
 
-    embedded_image, iterations, embedded_data_size = embedder.embed(126)
+    embedded_image, iterations, embedded_data_size = embedder.embed(64)
     recovered_image, recovery_iterations, extracted_data = extractor.extract(embedded_image)
 
     print(embedded_data_size)
-    cv2.imwrite('out/vb_embedded_scaling.png', embedded_image)
+    cv2.imwrite('out/embedded_scaling.png', embedded_image)
     # vb._header_pixels, vb._processed_pixels = get_header_and_body(vb._cover_image)
     # a = vb._preprocess(100)
 
