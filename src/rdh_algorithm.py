@@ -31,9 +31,17 @@ vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder,
                                     scaling.VariableBitsScalingExtractor,
                                     'vb_scaling')
 
+vb_scaling_algorithm_2bit = RdhAlgorithm(scaling.VariableBitsScalingEmbedder2Bit,
+                                         scaling.VariableBitsScalingExtractor2Bit,
+                                         'vb_scaling_2bit')
+
 bp_vb_scaling_algorithm = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder,
                                        bp_scaling.BPVariableBitsScalingExtractor,
                                        'bp_vb_scaling')
+
+bp_vb_scaling_algorithm_2bit = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder2Bit,
+                                            bp_scaling.BPVariableBitsScalingExtractor2Bit,
+                                            'bp_vb_scaling_2bit')
 
 vo_scaling_algorithm = RdhAlgorithm(scaling.ValueOrderScalingEmbedder,
                                     scaling.ValueOrderedScalingExtractor,
@@ -46,6 +54,10 @@ vo_original_algorithm = RdhAlgorithm(original.ValueOrderedOriginalEmbedder,
 nb_original_algorithm = RdhAlgorithm(original.NeighboringBinsEmbedder,
                                      original.NeighboringBinsExtractor,
                                      'nb_original')
+
+bp_nb_original_algorithm = RdhAlgorithm(original.BPNeighboringBinsEmbedder,
+                                        original.BPNeighboringBinsExtractor,
+                                        'bp_nb_original')
 
 nb_vo_original_algorithm = RdhAlgorithm(original.NbVoEmbedder,
                                         original.NbVoExtractor,

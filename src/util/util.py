@@ -8,7 +8,7 @@ import numpy as np
 
 from skimage.metrics import structural_similarity
 
-IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'bmp', 'jpg', 'gif']
+IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'tif', 'bmp', 'jpg', 'gif']
 MAX_PIXEL_VALUE = 255
 EPS = 0.00000005
 

@@ -198,6 +198,39 @@ class VariableBitsScalingExtractor(ScalingExtractor):
         # recovered_pixels += self._original_min
         self._processed_pixels = recovered_pixels + self._original_min
 
+class VariableBitsScalingEmbedder2Bit(ScalingEmbedder):
+    def _preprocess(self, iterations):
+        original_pixels = self._processed_pixels.copy()
+        self._original_min = np.min(self._processed_pixels)
+        self._original_max = np.max(self._processed_pixels)
+        scaled_max = MAX_PIXEL_VALUE - 2 * iterations
+
+        self._processed_pixels = scale_to(self._processed_pixels, scaled_max)
+        # mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
+        map_sizes = get_values_freqs(self._original_max - self._original_min, scaled_max)
+        if np.max(map_sizes) > 4:
+            raise ValueError
+        # values_freq = np.where(values_freq == 0, 1, values_freq)  # so we get 0 for 0s
+        # map_sizes = np.ceil(np.log2(values_freq)).astype(int)
+        is_rounded = self.get_is_rounded(original_pixels, self._processed_pixels)
+        is_rounded_bits = BoolDataBuffer()
+
+        # map_sizes_bits = integers_to_binary(is_rounded, 4)
+
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            is_rounded_bits.push(integers_to_bits(is_rounded[pixels_with_value], map_sizes[value]))
+
+        # for index, value in enumerate(is_rounded):
+        #     diff = integer_to_binary(value, map_sizes[self._processed_pixels[index]])
+        #     is_rounded_bits.push(diff)
+
+        self._processed_pixels += iterations
+
+        return is_rounded_bits.next(-1)
+
+class VariableBitsScalingExtractor2Bit(VariableBitsScalingExtractor):
+    pass
 
 def get_values_freqs(original_max: int, scaled_max: int):
     og_values = np.arange(original_max + 1)

@@ -261,6 +261,25 @@ class NeighboringBinsExtractor(OriginalExtractor):
         self._processed_pixels[np.logical_and(is_modified_decompressed, self._processed_pixels < 128)] -= 1
         self._processed_pixels[np.logical_and(is_modified_decompressed, self._processed_pixels >= 128)] += 1
 
+class BPNeighboringBinsEmbedder(NeighboringBinsEmbedder):
+    def __init__(self, cover_image: np.ndarray, hidden_data: Iterable, compression: CompressionAlgorithm = deflate):
+        OriginalEmbedder.__init__(self, cover_image, hidden_data, compression)
+        self._original_brightness = np.mean(cover_image)
+
+    def _get_peaks(self):
+        hist = np.bincount(self._processed_pixels)
+        current_brightness = np.mean(self._processed_pixels)
+        cutoff_index = int(np.ceil(current_brightness))
+
+        if self._original_brightness - current_brightness > BRIGHTNESS_THRESHOLD:
+            return np.sort(hist[:cutoff_index].argsort()[-2:])
+        elif self._original_brightness - current_brightness < -BRIGHTNESS_THRESHOLD:
+            return np.sort(hist[cutoff_index:].argsort()[-2:]) + cutoff_index
+        else:
+            return np.sort(hist.argsort()[-2:])
+
+class BPNeighboringBinsExtractor(NeighboringBinsExtractor):
+    pass
 
 class NbVoEmbedder(OriginalEmbedder):
     def _preprocess(self, iterations):

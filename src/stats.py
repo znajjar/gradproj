@@ -12,9 +12,9 @@ from util.util import *
 from write_data import RunStats, ImageStats, write_data
 
 # IMAGES_PATH = 'res/dataset-50/'
-SAVE_IMAGES = False
-IMAGES_PATH = 'res/dataset-50/'
-original_images = ['1.gif']  # path relative to ORIGINAL_IMAGES_PATH
+SAVE_IMAGES = True
+IMAGES_PATH = 'res/kodek_dataset/'
+original_images = []  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
 if not original_images:
@@ -27,17 +27,21 @@ if not original_images:
 original_images = [(image, read_image(join_path(IMAGES_PATH, image))) for image in original_images]
 
 RDH_ALGORITHMS = [
-    # original_algorithm,
+    vb_scaling_algorithm_2bit,
+    bp_vb_scaling_algorithm_2bit
+    # bp_nb_original_algorithm,
+    # bp_scaling_algorithm,
     # bp_uni_algorithm,
+    # bp_uni_algorithm_improved,
+    # bp_uni_algorithm_improved_zero,
     # bp_vb_scaling_algorithm,
-    # vb_scaling_algorithm,
+    # nb_original_algorithm,
+    # vo_original_algorithm,
+    # original_algorithm,
     # scaling_algorithm,
     # vo_scaling_algorithm,
-    # vo_original_algorithm,
-    # bp_scaling_algorithm,
     # uni_algorithm,
-    # bp_uni_algorithm_improved,
-    nb_original_algorithm,
+    # vb_scaling_algorithm,
 ]
 
 np.random.seed(2115)
@@ -94,6 +98,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
             print('total time:', stopwatch)
             print('----------------------')
         if SAVE_IMAGES:
-            cv2.imwrite(f'out/stats/{filename}_{label}.png', embedded_image)
+            os.makedirs(f'out/stats/{filename}/', exist_ok=True)
+            cv2.imwrite(f'out/stats/{filename}/{label}.png', embedded_image)
         run_stats.append_image_stats(image_stats)
     write_data(run_stats)

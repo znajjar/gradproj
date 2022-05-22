@@ -36,6 +36,14 @@ class BPVariableBitsScalingExtractor(BPScalingExtractor, VariableBitsScalingExtr
     pass
 
 
+class BPVariableBitsScalingEmbedder2Bit(BPScalingEmbedder, VariableBitsScalingEmbedder2Bit):
+    pass
+
+
+class BPVariableBitsScalingExtractor2Bit(BPScalingExtractor, VariableBitsScalingExtractor2Bit):
+    pass
+
+
 if __name__ == '__main__':
     from skimage.metrics import structural_similarity
 
