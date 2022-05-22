@@ -1,5 +1,3 @@
-import numpy as np
-
 from bidirectional.configurations import *
 from util import *
 
@@ -187,7 +185,7 @@ class OriginalExtractor:
 
 class ValueOrderedOriginalEmbedder(OriginalEmbedder):
     def _preprocess(self, iterations):
-        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
+        is_modified = np.zeros_like(self._processed_pixels, dtype=bool)
         lower_bound = self._processed_pixels < iterations
         upper_bound = MAX_PIXEL_VALUE - iterations < self._processed_pixels
         is_modified |= lower_bound
@@ -199,7 +197,7 @@ class ValueOrderedOriginalEmbedder(OriginalEmbedder):
 
         for value in range(256):
             pixels_with_value = self._processed_pixels == value
-            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+            if not MAX_PIXEL_VALUE - 2 * iterations >= value >= 2 * iterations:
                 is_modified_ordered.push(is_modified[pixels_with_value])
         return is_modified_ordered.next(-1)
 
@@ -215,7 +213,7 @@ class ValueOrderedOriginalExtractor(OriginalExtractor):
             pixels_count = np.count_nonzero(pixels_with_value)
             sign = 1 if value >= 128 else -1
             rec_value = value + sign * iterations
-            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+            if not MAX_PIXEL_VALUE - 2 * iterations >= value >= 2 * iterations:
                 is_modified_value = np.zeros_like(pixels_with_value)
                 is_modified_value[pixels_with_value] = (is_modified_decompressed.next(pixels_count))
                 self._processed_pixels[is_modified_value] = rec_value
@@ -283,15 +281,11 @@ class NbVoEmbedder(OriginalEmbedder):
         self._processed_pixels[upper_bound] -= ((self._processed_pixels[upper_bound] - (
                 MAX_PIXEL_VALUE - 2 * iterations + 1)) / 2).astype(np.uint8)
 
-        is_modifiable = np.logical_or(self._processed_pixels < 2 * iterations,
-                                      self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations)
-        is_modified = is_modified[is_modifiable]
-
         is_modified_ordered = BoolDataBuffer()
 
         for value in range(256):
             pixels_with_value = self._processed_pixels == value
-            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+            if not MAX_PIXEL_VALUE - 2 * iterations >= value >= 2 * iterations:
                 is_modified_ordered.push(is_modified[pixels_with_value])
         return is_modified_ordered.next(-1)
 
@@ -307,7 +301,7 @@ class NbVoExtractor(OriginalExtractor):
             pixels_with_value = self._processed_pixels == value
             pixels_count = np.count_nonzero(pixels_with_value)
 
-            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+            if not MAX_PIXEL_VALUE - 2 * iterations >= value >= 2 * iterations:
                 is_modified_value = np.zeros_like(pixels_with_value)
                 is_modified_value[pixels_with_value] = (is_modified_decompressed.next(pixels_count))
 
@@ -323,12 +317,12 @@ class NbVoExtractor(OriginalExtractor):
 if __name__ == '__main__':
     import cv2
 
-    image = read_image('res/dataset-50/2.gif')
+    image = read_image('res/mo3tamad/5.3.01.tiff')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = NbVoEmbedder(image.copy(), data)
-    extractor = NbVoExtractor()
+    embedder = ValueOrderedOriginalEmbedder(image.copy(), data)
+    extractor = ValueOrderedOriginalExtractor()
 
-    embedded, hidden_data_size, _ = embedder.embed(64)
+    embedded, hidden_data_size, _ = embedder.embed(63)
     cv2.imwrite('out/embedded.png', embedded)
 
     extracted, iteration_count, extracted_data = extractor.extract(embedded)
@@ -336,6 +330,3 @@ if __name__ == '__main__':
 
     print(f'difference: {np.sum(np.abs(image - extracted))} \n'
           f'hidden data size: {8 * len(extracted_data)}')
-
-    # for it in embedder:
-    #     print(it)
