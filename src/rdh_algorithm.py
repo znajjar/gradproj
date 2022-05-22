@@ -7,7 +7,6 @@ from src.unidirection import bp_uni_improved_zero
 from src.unidirection import uni_original
 
 
-# RdhAlgorithm = namedtuple('RdhAlgorithm', ('embedder', 'extractor', 'label'))
 class RdhAlgorithm(NamedTuple):
     embedder: Any
     extractor: Any
@@ -47,3 +46,7 @@ vo_original_algorithm = RdhAlgorithm(original.ValueOrderedOriginalEmbedder,
 nb_original_algorithm = RdhAlgorithm(original.NeighboringBinsEmbedder,
                                      original.NeighboringBinsExtractor,
                                      'nb_original')
+
+nb_vo_original_algorithm = RdhAlgorithm(original.NbVoEmbedder,
+                                        original.NbVoExtractor,
+                                        'nb_vo_original')

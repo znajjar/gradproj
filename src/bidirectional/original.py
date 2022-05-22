@@ -1,3 +1,5 @@
+import numpy as np
+
 from bidirectional.configurations import *
 from util import *
 
@@ -260,13 +262,71 @@ class NeighboringBinsExtractor(OriginalExtractor):
         self._processed_pixels[np.logical_and(is_modified_decompressed, self._processed_pixels >= 128)] += 1
 
 
+class NbVoEmbedder(OriginalEmbedder):
+    def _preprocess(self, iterations):
+        is_modified = np.zeros_like(self._processed_pixels, bool)
+
+        lower_bound = self._processed_pixels < 2 * iterations
+        lower_bound_modified = np.logical_and(lower_bound, self._processed_pixels % 2 == 0)
+
+        upper_bound = self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations
+        upper_bound_modified = np.logical_and(upper_bound, self._processed_pixels % 2 == 1)
+
+        is_modified |= lower_bound_modified
+        is_modified |= upper_bound_modified
+
+        self._processed_pixels[lower_bound_modified] += 1
+        self._processed_pixels[upper_bound_modified] -= 1
+
+        self._processed_pixels[lower_bound] += (
+                ((2 * iterations - 1) - self._processed_pixels[lower_bound]) / 2).astype(np.uint8)
+        self._processed_pixels[upper_bound] -= ((self._processed_pixels[upper_bound] - (
+                MAX_PIXEL_VALUE - 2 * iterations + 1)) / 2).astype(np.uint8)
+
+        is_modifiable = np.logical_or(self._processed_pixels < 2 * iterations,
+                                      self._processed_pixels > MAX_PIXEL_VALUE - 2 * iterations)
+        is_modified = is_modified[is_modifiable]
+
+        is_modified_ordered = BoolDataBuffer()
+
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+                is_modified_ordered.push(is_modified[pixels_with_value])
+        return is_modified_ordered.next(-1)
+
+
+class NbVoExtractor(OriginalExtractor):
+    def _unpack_is_modified(self, is_modified_packed, iterations):
+        return is_modified_packed
+
+    def _recover_image(self, iterations, is_modified_decompressed):
+        recovered_pixels = self._processed_pixels.copy()
+        is_modified_decompressed = BoolDataBuffer(is_modified_decompressed)
+        for value in range(256):
+            pixels_with_value = self._processed_pixels == value
+            pixels_count = np.count_nonzero(pixels_with_value)
+
+            if not MAX_PIXEL_VALUE - 2 * iterations < value < 2 * iterations:
+                is_modified_value = np.zeros_like(pixels_with_value)
+                is_modified_value[pixels_with_value] = (is_modified_decompressed.next(pixels_count))
+
+                if value >= 128:
+                    recovered_pixels[pixels_with_value] += value - (MAX_PIXEL_VALUE - 2 * iterations + 1)
+                    recovered_pixels[is_modified_value] += 1
+                else:
+                    recovered_pixels[pixels_with_value] -= 2 * iterations - 1 - value
+                    recovered_pixels[is_modified_value] -= 1
+        self._processed_pixels = recovered_pixels
+
+
 if __name__ == '__main__':
     import cv2
 
     image = read_image('res/dataset-50/2.gif')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = NeighboringBinsEmbedder(image.copy(), data)
-    extractor = NeighboringBinsExtractor()
+    embedder = NbVoEmbedder(image.copy(), data)
+    extractor = NbVoExtractor()
 
     embedded, hidden_data_size, _ = embedder.embed(64)
     cv2.imwrite('out/embedded.png', embedded)
