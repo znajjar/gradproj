@@ -1,10 +1,7 @@
-import os
 import traceback
 from os.path import join as join_path
 
 import cv2
-import numpy as np
-from skimage.metrics import structural_similarity
 
 from rdh_algorithm import *
 from util.measure import Measure
@@ -13,8 +10,8 @@ from write_data import RunStats, ImageStats, write_data
 
 # IMAGES_PATH = 'res/dataset-50/'
 SAVE_IMAGES = False
-IMAGES_PATH = 'res/dataset-50/'
-original_images = ['1.gif']  # path relative to ORIGINAL_IMAGES_PATH
+IMAGES_PATH = 'res/mo3tamad'
+original_images = ['5.3.01.tiff']  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
 if not original_images:
@@ -30,14 +27,14 @@ RDH_ALGORITHMS = [
     # original_algorithm,
     # bp_uni_algorithm,
     # bp_vb_scaling_algorithm,
-    # vb_scaling_algorithm,
+    vb_scaling_algorithm,
     # scaling_algorithm,
     # vo_scaling_algorithm,
     # vo_original_algorithm,
     # bp_scaling_algorithm,
     # uni_algorithm,
     # bp_uni_algorithm_improved,
-    nb_original_algorithm,
+    # nb_original_algorithm,
 ]
 
 np.random.seed(2115)
@@ -86,7 +83,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
 
                 image_stats.append_iteration(mean, std, ssim, ratio)
             else:
-                print('extraction failed')
+                print_error('EXTRACTION FAILED')
                 if recovered_image is not None:
                     print('PSNR =', cv2.PSNR(original_image, recovered_image))
                 break

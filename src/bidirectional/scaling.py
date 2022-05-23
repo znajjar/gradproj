@@ -1,5 +1,3 @@
-import numpy as np
-
 from bidirectional.original import *
 from util.util import *
 
@@ -20,7 +18,7 @@ class ScalingEmbedder(OriginalEmbedder):
         if len(np.unique(is_rounded)) > 2:
             raise ValueError(super()._ITERATIONS_LIMIT_EXCEEDED_ERROR)
 
-        is_rounded = is_rounded.astype(np.bool)
+        is_rounded = is_rounded.astype(bool)
 
         is_rounded = is_rounded[np.in1d(self._processed_pixels, mapped_values)]
 
@@ -38,7 +36,7 @@ class ScalingEmbedder(OriginalEmbedder):
     @staticmethod
     def get_is_rounded(original, processed):
         recovered = scale_to(processed, (np.min(original), np.max(original)))
-        return recovered - original
+        return original - recovered
 
 
 class ScalingExtractor(OriginalExtractor):
@@ -68,7 +66,7 @@ class ScalingExtractor(OriginalExtractor):
         mapped_values = np.in1d(self._processed_pixels, mapped_values)
 
         recovered_pixels = scale_to(self._processed_pixels, self._original_max - self._original_min)
-        recovered_pixels[mapped_values] -= is_rounded[:np.count_nonzero(mapped_values)]
+        recovered_pixels[mapped_values] += is_rounded[:np.count_nonzero(mapped_values)]
         recovered_pixels += self._original_min
         self._processed_pixels = recovered_pixels
 
@@ -88,8 +86,6 @@ class ValueOrderScalingEmbedder(ScalingEmbedder):
             raise ValueError(super()._ITERATIONS_LIMIT_EXCEEDED_ERROR)
 
         is_rounded = is_rounded.astype(np.bool)
-
-        # is_rounded = is_rounded[np.in1d(self._processed_pixels, mapped_values)]
 
         ordered_is_rounded = BoolDataBuffer()
 
@@ -122,6 +118,13 @@ class ValueOrderedScalingExtractor(ScalingExtractor):
 
 
 class VariableBitsScalingEmbedder(ScalingEmbedder):
+    def __init__(self, cover_image: np.ndarray,
+                 hidden_data: Iterable,
+                 compression: CompressionAlgorithm = deflate,
+                 bit_limit=2):
+        super().__init__(cover_image, hidden_data, compression)
+        self._bit_limit = bit_limit
+
     def _preprocess(self, iterations):
         original_pixels = self._processed_pixels.copy()
         self._original_min = np.min(self._processed_pixels)
@@ -131,10 +134,9 @@ class VariableBitsScalingEmbedder(ScalingEmbedder):
         self._processed_pixels = scale_to(self._processed_pixels, scaled_max)
         # mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
         map_sizes = get_values_freqs(self._original_max - self._original_min, scaled_max)
-        if np.max(map_sizes) > 2:
+        if np.max(map_sizes) > self._bit_limit:
             raise ValueError
-        # values_freq = np.where(values_freq == 0, 1, values_freq)  # so we get 0 for 0s
-        # map_sizes = np.ceil(np.log2(values_freq)).astype(int)
+
         is_rounded = self.get_is_rounded(original_pixels, self._processed_pixels)
         is_rounded_bits = BoolDataBuffer()
 
@@ -143,10 +145,6 @@ class VariableBitsScalingEmbedder(ScalingEmbedder):
         for value in range(256):
             pixels_with_value = self._processed_pixels == value
             is_rounded_bits.push(integers_to_bits(is_rounded[pixels_with_value], map_sizes[value]))
-
-        # for index, value in enumerate(is_rounded):
-        #     diff = integer_to_binary(value, map_sizes[self._processed_pixels[index]])
-        #     is_rounded_bits.push(diff)
 
         self._processed_pixels += iterations
 
@@ -169,6 +167,9 @@ class VariableBitsScalingExtractor(ScalingExtractor):
         hidden_data = bits_to_bytes(self._buffer.next(-1))
         return hidden_data, is_rounded
 
+    def _unpack_is_modified(self, is_modified_packed, iterations):
+        return is_modified_packed
+
     def _recover_image(self, iterations, is_rounded):
         self._processed_pixels -= iterations
         scaled_max = np.max(self._processed_pixels)
@@ -187,15 +188,8 @@ class VariableBitsScalingExtractor(ScalingExtractor):
             bits_count = np.count_nonzero(pixels_with_value) * bits_length
             bits = is_rounded.next(bits_count)
             is_rounded_value = bits_to_integers(bits, bits_length)
-            recovered_pixels[pixels_with_value] -= is_rounded_value
+            recovered_pixels[pixels_with_value] += is_rounded_value
 
-        # for index, value in enumerate(self._processed_pixels):
-        #     bits_length = map_sizes[value]
-        #     diff = binary_to_integer(is_rounded.next(bits_length))
-        #     recovered_pixels[index] -= diff
-
-        # recovered_pixels[mapped_values] -= is_rounded[:np.count_nonzero(mapped_values)]
-        # recovered_pixels += self._original_min
         self._processed_pixels = recovered_pixels + self._original_min
 
 
@@ -220,8 +214,6 @@ def bits_to_integers(r: np.ndarray, m=8):
 
 def resize_values(pixels, sizes_map):
     for value, size in enumerate(sizes_map):
-        # values = np.where(pixels == value)
-        # pixels[values]
         value_bits = integers_to_bits(value, size)
         pixels[value] = value_bits
 
@@ -229,28 +221,16 @@ def resize_values(pixels, sizes_map):
 if __name__ == '__main__':
     import cv2
 
-    im = read_image('res/f-16.png')
-    embedder = ScalingEmbedder(im, bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0), deflate)
+    image = read_image('res/mo3tamad/5.3.01.tiff')
+    data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
+    embedder = VariableBitsScalingEmbedder(image.copy(), data, bit_limit=2)
     extractor = VariableBitsScalingExtractor()
 
-    embedded_image, iterations, embedded_data_size = embedder.embed(64)
+    embedded_image, iterations, embedded_data_size = embedder.embed(96)
     recovered_image, recovery_iterations, extracted_data = extractor.extract(embedded_image)
 
-    print(embedded_data_size)
+    print(f'difference: {np.sum(np.abs(image - recovered_image))} \n'
+          f'hidden data size: {8 * len(extracted_data)}')
     cv2.imwrite('out/embedded_scaling.png', embedded_image)
-    # vb._header_pixels, vb._processed_pixels = get_header_and_body(vb._cover_image)
-    # a = vb._preprocess(100)
+    cv2.imwrite('out/extracted_scaling.png', recovered_image)
 
-    # sys.exit(-1)
-    # import cv2
-    #
-    # image = read_image('res/dataset-50/43.gif')
-    # data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    # embedder = ScalingEmbedder(image, data)
-    #
-    # embedded_image, hidden_data_size, _ = embedder.embed(64)
-    #
-    # cv2.imwrite('out/embedded_scaling.png', embedded_image)
-    #
-    # for it in embedder:
-    #     print(it)

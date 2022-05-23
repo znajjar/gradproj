@@ -33,7 +33,7 @@ class Measure:
         self._total_time += execution_time
 
         if self._print_time:
-            print(f'{self.label} execution time:{round(execution_time, self.precision)} seconds')
+            print(f'{self.label} execution time: {round(execution_time, self.precision)} seconds')
 
         if self._return_time:
             return execution_time, returned
