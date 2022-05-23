@@ -5,12 +5,14 @@ from typing import Union
 import PIL.Image as Image
 import matplotlib.pyplot as plt
 import numpy as np
-
 from skimage.metrics import structural_similarity
 
 IMAGE_EXTENSIONS = ['png', 'jpeg', 'tiff', 'tif', 'bmp', 'jpg', 'gif']
 MAX_PIXEL_VALUE = 255
 EPS = 0.00000005
+
+RED = '\033[91m'
+ENDC = '\033[0m'
 
 
 def integer_to_binary(number: int, bits=8):
@@ -74,19 +76,17 @@ def scale_to(image: np.ndarray, r: Union[np.ndarray, Iterable, int, str]) -> np.
     scaled_max = int(scaled_max)
 
     image -= np.min(image)
-    original_range = np.max(image)
-    scaled_range = scaled_max - scaled_min
+    original_range = np.max(image) + 1
+    scaled_range = scaled_max - scaled_min + 1
 
     image = image.astype(np.float64)
     scale_factor = scaled_range / original_range
 
     image *= scale_factor
 
-    if scaled_range <= original_range:
-        image -= EPS
+    if scaled_range > original_range:
         image = np.ceil(image)
     else:
-        image += EPS
         image = np.floor(image)
 
     image += scaled_min
@@ -222,3 +222,7 @@ def test_algorithm_by_directory(embedder, extractor, directory_path: str, data):
 
             print(f'Correct extraction? {np.sum(np.abs(extractor().extract(embedded_image)[0] - image))}')
             print()
+
+
+def print_error(text):
+    print(f'{RED}{text}{ENDC}')

@@ -27,21 +27,17 @@ if not original_images:
 original_images = [(image, read_image(join_path(IMAGES_PATH, image))) for image in original_images]
 
 RDH_ALGORITHMS = [
-    vb_scaling_algorithm_2bit,
-    bp_vb_scaling_algorithm_2bit
-    # bp_nb_original_algorithm,
-    # bp_scaling_algorithm,
-    # bp_uni_algorithm,
-    # bp_uni_algorithm_improved,
-    # bp_uni_algorithm_improved_zero,
-    # bp_vb_scaling_algorithm,
-    # nb_original_algorithm,
-    # vo_original_algorithm,
     # original_algorithm,
+    # bp_uni_algorithm,
+    # bp_vb_scaling_algorithm,
+    # vb_scaling_algorithm,
     # scaling_algorithm,
     # vo_scaling_algorithm,
+    # vo_original_algorithm,
+    # bp_scaling_algorithm,
     # uni_algorithm,
-    # vb_scaling_algorithm,
+    # bp_uni_algorithm_improved,
+    nb_original_algorithm,
 ]
 
 np.random.seed(2115)
@@ -90,7 +86,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
 
                 image_stats.append_iteration(mean, std, ssim, ratio)
             else:
-                print('extraction failed')
+                print_error('EXTRACTION FAILED')
                 if recovered_image is not None:
                     print('PSNR =', cv2.PSNR(original_image, recovered_image))
                 break
