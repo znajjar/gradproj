@@ -36,11 +36,11 @@ class BPVariableBitsScalingExtractor(BPScalingExtractor, VariableBitsScalingExtr
     pass
 
 
-class BPVariableBitsScalingEmbedder2Bit(BPScalingEmbedder, VariableBitsScalingEmbedder2Bit):
+class BPValueOrderScalingEmbedder(BPScalingEmbedder, ValueOrderScalingEmbedder):
     pass
 
 
-class BPVariableBitsScalingExtractor2Bit(BPScalingExtractor, VariableBitsScalingExtractor2Bit):
+class BPValueOrderedScalingExtractor(BPScalingExtractor, ValueOrderedScalingExtractor):
     pass
 
 

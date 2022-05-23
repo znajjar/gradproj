@@ -13,7 +13,7 @@ from write_data import RunStats, ImageStats, write_data
 
 # IMAGES_PATH = 'res/dataset-50/'
 SAVE_IMAGES = True
-IMAGES_PATH = 'res/kodek_dataset/'
+IMAGES_PATH = 'res/under_over_exposed/'
 original_images = []  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
@@ -27,17 +27,15 @@ if not original_images:
 original_images = [(image, read_image(join_path(IMAGES_PATH, image))) for image in original_images]
 
 RDH_ALGORITHMS = [
-    # original_algorithm,
-    # bp_uni_algorithm,
-    # bp_vb_scaling_algorithm,
-    # vb_scaling_algorithm,
-    # scaling_algorithm,
-    # vo_scaling_algorithm,
-    # vo_original_algorithm,
-    # bp_scaling_algorithm,
-    # uni_algorithm,
-    # bp_uni_algorithm_improved,
-    nb_original_algorithm,
+    original_algorithm,
+    scaling_algorithm,
+    vo_scaling_algorithm,
+    vb_scaling_algorithm,
+    nb_vo_original_algorithm,
+    bp_scaling_algorithm,
+    bp_vo_scaling_algorithm,
+    bp_vb_scaling_algorithm,
+    bp_nb_vo_original_algorithm
 ]
 
 np.random.seed(2115)

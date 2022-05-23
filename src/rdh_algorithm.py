@@ -31,25 +31,17 @@ vb_scaling_algorithm = RdhAlgorithm(scaling.VariableBitsScalingEmbedder,
                                     scaling.VariableBitsScalingExtractor,
                                     'vb_scaling')
 
-vb_scaling_algorithm_2bit = RdhAlgorithm(scaling.VariableBitsScalingEmbedder2Bit,
-                                         scaling.VariableBitsScalingExtractor2Bit,
-                                         'vb_scaling_2bit')
-
 bp_vb_scaling_algorithm = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder,
                                        bp_scaling.BPVariableBitsScalingExtractor,
                                        'bp_vb_scaling')
-
-bp_vb_scaling_algorithm_2bit = RdhAlgorithm(bp_scaling.BPVariableBitsScalingEmbedder2Bit,
-                                            bp_scaling.BPVariableBitsScalingExtractor2Bit,
-                                            'bp_vb_scaling_2bit')
 
 vo_scaling_algorithm = RdhAlgorithm(scaling.ValueOrderScalingEmbedder,
                                     scaling.ValueOrderedScalingExtractor,
                                     'vo_scaling')
 
-vo_original_algorithm = RdhAlgorithm(original.ValueOrderedOriginalEmbedder,
-                                     original.ValueOrderedOriginalExtractor,
-                                     'vo_original')
+bp_vo_scaling_algorithm = RdhAlgorithm(bp_scaling.BPValueOrderScalingEmbedder,
+                                    bp_scaling.BPValueOrderedScalingExtractor,
+                                    'bp_vo_scaling')
 
 nb_original_algorithm = RdhAlgorithm(original.NeighboringBinsEmbedder,
                                      original.NeighboringBinsExtractor,
@@ -62,3 +54,7 @@ bp_nb_original_algorithm = RdhAlgorithm(original.BPNeighboringBinsEmbedder,
 nb_vo_original_algorithm = RdhAlgorithm(original.NbVoEmbedder,
                                         original.NbVoExtractor,
                                         'nb_vo_original')
+
+bp_nb_vo_original_algorithm = RdhAlgorithm(original.BPNeighboringBinsEmbedder,
+                                           original.BPNeighboringBinsExtractor,
+                                           'bp_nb_vo_original')
