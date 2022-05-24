@@ -1,19 +1,16 @@
-import os
 import traceback
 from os.path import join as join_path
 
 import cv2
-import numpy as np
-from skimage.metrics import structural_similarity
 
 from rdh_algorithm import *
 from util.measure import Measure
 from util.util import *
 from write_data import RunStats, ImageStats, write_data
 
-# IMAGES_PATH = 'res/dataset-50/'
 SAVE_IMAGES = True
-IMAGES_PATH = 'res/under_over_exposed/'
+DATA_SET = "research_dataset"
+IMAGES_PATH = f'res/{DATA_SET}/'
 original_images = []  # path relative to ORIGINAL_IMAGES_PATH
 
 # if list is empty, find all images in ORIGINAL_IMAGES_PATH
@@ -27,15 +24,15 @@ if not original_images:
 original_images = [(image, read_image(join_path(IMAGES_PATH, image))) for image in original_images]
 
 RDH_ALGORITHMS = [
-    original_algorithm,
+    # original_algorithm,
     scaling_algorithm,
     vo_scaling_algorithm,
     vb_scaling_algorithm,
-    nb_vo_original_algorithm,
-    bp_scaling_algorithm,
-    bp_vo_scaling_algorithm,
-    bp_vb_scaling_algorithm,
-    bp_nb_vo_original_algorithm
+    # nb_vo_original_algorithm,
+    # bp_scaling_algorithm,
+    # bp_vo_scaling_algorithm,
+    # bp_vb_scaling_algorithm,
+    # bp_nb_vo_original_algorithm
 ]
 
 np.random.seed(2115)
@@ -46,7 +43,7 @@ for rdh_embedder, rdh_extractor, label in RDH_ALGORITHMS:
     print('======================')
     print(label)
     print('======================')
-    run_stats = RunStats(label)
+    run_stats = RunStats(f'{DATA_SET}_{label}')
     for filename, original_image in original_images:
         embedder = rdh_embedder(original_image.copy(), data)
         extractor = rdh_extractor()

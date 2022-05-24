@@ -55,6 +55,6 @@ nb_vo_original_algorithm = RdhAlgorithm(original.NbVoEmbedder,
                                         original.NbVoExtractor,
                                         'nb_vo_original')
 
-bp_nb_vo_original_algorithm = RdhAlgorithm(original.BPNeighboringBinsEmbedder,
-                                           original.BPNeighboringBinsExtractor,
+bp_nb_vo_original_algorithm = RdhAlgorithm(original.BPNbVoEmbedder,
+                                           original.BPNbVoExtractor,
                                            'bp_nb_vo_original')

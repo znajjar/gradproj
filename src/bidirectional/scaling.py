@@ -71,52 +71,6 @@ class ScalingExtractor(OriginalExtractor):
         self._processed_pixels = recovered_pixels
 
 
-class ValueOrderScalingEmbedder(ScalingEmbedder):
-    def _preprocess(self, iterations):
-        original_pixels = self._processed_pixels.copy()
-        self._original_min = np.min(self._processed_pixels)
-        self._original_max = np.max(self._processed_pixels)
-        scaled_max = MAX_PIXEL_VALUE - 2 * iterations
-
-        self._processed_pixels = scale_to(self._processed_pixels, scaled_max)
-        mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
-        is_rounded = self.get_is_rounded(original_pixels, self._processed_pixels)
-
-        if len(np.unique(is_rounded)) > 2:
-            raise ValueError(super()._ITERATIONS_LIMIT_EXCEEDED_ERROR)
-
-        is_rounded = is_rounded.astype(np.bool)
-
-        ordered_is_rounded = BoolDataBuffer()
-
-        for value in range(256):
-            pixels_with_value = self._processed_pixels == value
-            if value in mapped_values:
-                ordered_is_rounded.push(is_rounded[pixels_with_value])
-
-        self._processed_pixels += iterations
-
-        return ordered_is_rounded.next(-1)
-
-
-class ValueOrderedScalingExtractor(ScalingExtractor):
-    def _recover_image(self, iterations, is_rounded):
-        self._processed_pixels -= iterations
-        scaled_max = np.max(self._processed_pixels)
-
-        mapped_values = get_mapped_values(self._original_max - self._original_min, scaled_max)
-        recovered_pixels = scale_to(self._processed_pixels, self._original_max - self._original_min)
-
-        is_rounded = BoolDataBuffer(is_rounded)
-        for value in range(256):
-            pixels_with_value = self._processed_pixels == value
-            if value in mapped_values:
-                recovered_pixels[pixels_with_value] -= is_rounded.next(np.count_nonzero(pixels_with_value))
-
-        recovered_pixels += self._original_min
-        self._processed_pixels = recovered_pixels
-
-
 class VariableBitsScalingEmbedder(ScalingEmbedder):
     def __init__(self, cover_image: np.ndarray,
                  hidden_data: Iterable,
@@ -191,6 +145,17 @@ class VariableBitsScalingExtractor(ScalingExtractor):
             recovered_pixels[pixels_with_value] += is_rounded_value
 
         self._processed_pixels = recovered_pixels + self._original_min
+
+
+class ValueOrderScalingEmbedder(VariableBitsScalingEmbedder):
+    def __init__(self, cover_image: np.ndarray,
+                 hidden_data: Iterable,
+                 compression: CompressionAlgorithm = deflate):
+        super().__init__(cover_image, hidden_data, compression, 1)
+
+
+class ValueOrderedScalingExtractor(VariableBitsScalingExtractor):
+    pass
 
 def get_values_freqs(original_max: int, scaled_max: int):
     og_values = np.arange(original_max + 1)
