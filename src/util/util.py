@@ -85,8 +85,10 @@ def scale_to(image: np.ndarray, r: Union[np.ndarray, Iterable, int, str]) -> np.
     image *= scale_factor
 
     if scaled_range > original_range:
+        image -= EPS
         image = np.ceil(image)
     else:
+        image += EPS
         image = np.floor(image)
 
     image += scaled_min
