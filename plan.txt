@@ -1,0 +1,36 @@
+Choose photos
+ * Popular in research (see mo3tamad)
+ * Most gain by % or #
+
+Note: Use matlab for color to greyscale
+-----------------------------------------
+Get results (max iteration mainly but at different iterations for some):
+(Rows = Images, Columns = Algos)
+ * Contrast (STD)
+ * Brightness Difference (mean) - X (Graph of iterations)
+ * SSIM
+ * BPP
+-----------------------------------------
+Design table and fill with dummy data (populate data later)
+------------------------------------------ 
+####### Add graphs, image examples, and figures of operations
+Chapter 3: Unidirectional Improvement - EHAB
+---- Solution Description & Implementation
+---- Results and Discussion
+----> Results on different iterations
+
+Chapter 4: Bidirectional algorithm - ZOZ
+---- Solution Description & Implementation
+---- Results and Discussion
+----> Results on different iterations
+
+Chapter 5: Conclusion and Future Work
+---- Applying to color images
+---- Always take the maximum iterations???
+
+--------------------------------------------------------------------------------
+* Multiple algorithms for one image and one property.
+Iterations vs. PSNR #
+Iterations vs. SSIM
+Iterations vs. Embedding rate
+Iterations vs. Contrast #
