@@ -77,15 +77,16 @@ class ImprovedBPUnidirectionEmbedder(BPUnidirectionEmbedder):
 
         return best_P_L, best_P_H
 
+    # Finds for each P_H (0, 255) the P_L with the minimum location map size
     def _get_minimum_closest_right(self):
         minimum_closest_right = np.zeros(MAX_PIXEL_VALUE + 1, dtype=np.uint8)
         min_so_far = MAX_PIXEL_VALUE
-        min_sum = self._get_min_location_map_size(MAX_PIXEL_VALUE)
+        min_location_map_size = self._get_min_location_map_size(MAX_PIXEL_VALUE)
         for left_peak in range(MAX_PIXEL_VALUE - 1, -1, -1):
             minimum_closest_right[left_peak] = min_so_far
-            new_sum = self._get_min_location_map_size(left_peak)
-            if min_sum >= new_sum:
-                min_sum = new_sum
+            new_location_map_size = self._get_min_location_map_size(left_peak)
+            if new_location_map_size <= min_location_map_size:
+                min_location_map_size = new_location_map_size
                 min_so_far = left_peak
 
         return minimum_closest_right
@@ -165,7 +166,11 @@ class ImprovedBPUnidirectionExtractor(BPUnidirectionExtractor):
 
 
 if __name__ == '__main__':
-    images_path = f'res/kodek_dataset'
+    image_path = f'res/kodek_dataset/kodim20_org.png'
     np.random.seed(2115)
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    test_algorithm_by_directory(ImprovedBPUnidirectionEmbedder, ImprovedBPUnidirectionExtractor, images_path, data)
+    image = read_image(image_path)
+    embedder = ImprovedBPUnidirectionEmbedder(image, data)
+    embedded_image, iterations, hidden_data_size = embedder.embed(1000)
+    show_hist(embedded_image, "bp_unidirection_improved")
+    # test_algorithm_by_directory(ImprovedBPUnidirectionEmbedder, ImprovedBPUnidirectionExtractor, images_path, data)
