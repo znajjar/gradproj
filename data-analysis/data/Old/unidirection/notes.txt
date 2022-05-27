@@ -1,0 +1,12 @@
+unidirection_improved.json : by N algorithm (2-bits), model
+unidirection_improved_zero.json : max - min, by N algorithm (2-bits), model, zero optimization
+
+bp_unidirection_v0.json : max - min
+bp_unidirection_v1.json : by N algorithm (2-bits), model
+bp_unidirection_v2.json : max - min, model
+bp_unidirection_v3.json : max - min, by N algorithm (2-bits), model
+bp_unidirection_v4.json : max - min, by N algorithm (2-bits), model, zero optimization
+bp_unidirection_v5.json : max - min, by N algorithm (2-bits), model, parity bit
+
+
+2-bits means 1 sign and 1 placement
