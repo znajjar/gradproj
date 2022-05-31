@@ -7,7 +7,8 @@ library(RColorBrewer)
 library(tools)
 library(tictoc)
 library(magick)
-
+library(imager)
+library(hrbrthemes)
 
 extract_from_file <- function(path_to_file) {
     data <- fromJSON(path_to_file)
@@ -143,13 +144,21 @@ get_pixels_of_image <- function(file_path) {
   return(as.vector(image_file[[1]], mode = "integer"))
 }
 
+read_all_datasets <- function() {
+  return(rbind(read_all_in_directory("data/research"),
+        read_all_in_directory("data/kodek"),
+        read_all_in_directory("data/under_over_exposed")))
+}
 
-df <- read_all_in_directory("data/custom")
+df <- read_all_datasets()
 
 bp_df <- df %>% filter(grepl("bp", algorithm))
+zoz_df <- df %>%
+  filter(algorithm %in% c("original", "nb_vo_original", "bp_nb_vo_original", "vo_scaling")) %>%
+  filter(filename == "kodim01_org.png")
 
 # tic()
-# generate_all_plots(bp_df)
+# generate_all_plots(zoz_df)
 # toc()
 
 
@@ -199,3 +208,120 @@ ggplot(plotting_df, aes(x = pixel_value, fill = factor(image), color = factor(im
   # scale_alpha_discrete(range = c(0.5, 0.3))
 
 freq <- as.vector(table(bp_uni_improved_pixels))
+
+##################################################################################################
+
+selected_files <- c("5.3.01.tiff", "peppers.tif", "kodim08_org.png", "kodim20_org.png",
+                    "Pond_grayscale.png", "Sign_grayscale.png", "Bike_grayscale.png")
+
+################### STD #####################
+
+org_std <- read.table("data/stds.csv", header = T, sep = ",")
+org_std$algorithm = "Original"
+
+selected_images <- last_iteration %>%
+  filter(grepl("bp_uni", algorithm)) %>%
+  filter(filename %in% selected_files) %>%
+  select(c(algorithm, filename, STD))
+
+selected_images <- rbind(selected_images, org_std)
+selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
+selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+
+algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH with BP", "Original"))
+filename_factor <- factor(selected_images$filename, levels = selected_files)
+
+gg_selected <- ggplot(selected_images, aes(x = filename_factor, y = STD, fill = algorithm_factor, color = algorithm_factor)) +
+  geom_bar(position="dodge", stat="identity") +
+  geom_hline(yintercept = 73.9) +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 0.75))  +
+  xlab("Image") +
+  ylab("Standard Deviation") + 
+  guides(fill=guide_legend(title="Algorithm")) +
+  guides(color=guide_legend(title="Algorithm")) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
+
+ggsave(gg_selected, file="std.png", width=12, height=8, dpi = 300)
+print(gg_selected)
+
+################### Iterations #####################
+
+selected_images <- last_iteration %>%
+  filter(grepl("uni", algorithm)) %>%
+  filter(filename %in% selected_files) %>%
+  select(c(algorithm, filename, iteration))
+
+selected_images[selected_images$algorithm == "unidirection", "algorithm"] = "ACERDH"
+selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
+selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+
+algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH", "ACERDH with BP"))
+filename_factor <- factor(selected_images$filename, levels = selected_files)
+
+gg_selected <- ggplot(selected_images, aes(x = filename_factor, y = iteration, fill = algorithm_factor, color = algorithm_factor)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 0.75)) +
+  xlab("Image") +
+  ylab("Max # of Repetitions") + 
+  guides(fill=guide_legend(title="Algorithm")) + 
+  guides(color=guide_legend(title="Algorithm")) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
+
+# ggsave(gg_selected, file="iterations.png", width=12, height=8, dpi = 300)
+# print(gg_selected)
+
+################### RATE #####################
+
+selected_images <- last_iteration %>%
+  filter(grepl("uni", algorithm)) %>%
+  filter(filename %in% selected_files) %>%
+  select(c(algorithm, filename, rate))
+
+selected_images[selected_images$algorithm == "unidirection", "algorithm"] = "ACERDH"
+selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
+selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+
+algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH", "ACERDH with BP"))
+filename_factor <- factor(selected_images$filename, levels = selected_files)
+
+gg_selected <- ggplot(selected_images, aes(x = filename_factor, y = rate, color = algorithm_factor, fill = algorithm_factor)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 0.9)) +
+  xlab("Image") +
+  ylab("Embedding rate (BBP)") + 
+  guides(fill=guide_legend(title="Algorithm")) +
+  guides(color=guide_legend(title="Algorithm")) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
+
+# ggsave(gg_selected, file="rate.png", width=12, height=8, dpi = 300)
+# print(gg_selected)
+
+################### Brightness #####################
+
+selected_images <- last_iteration %>%
+  filter(grepl("uni", algorithm)) %>%
+  filter(grepl("kodim", filename)) %>%
+  select(c(algorithm, filename, iteration))
+
+selected_images[selected_images$algorithm == "unidirection", "algorithm"] = "ACERDH"
+selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
+selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+
+algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH", "ACERDH with BP"))
+
+gg_selected <- ggplot(selected_images, aes(x = factor(filename), y = iteration, group = algorithm_factor)) +
+  geom_point(aes(colour = algorithm_factor, shape = algorithm_factor), size = 3) +
+  geom_line(aes(colour = algorithm_factor), linetype = "dashed", size = 1) +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 0.75)) +
+  xlab("Image") +
+  ylab("Max # of Repetitions") + 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  guides(colour=guide_legend(title="Algorithm")) +
+  guides(shape=guide_legend(title="Algorithm"))
+
+# ggsave(gg_selected, file="iterations.png", width=12, height=8, dpi = 300)
+# print(gg_selected)
