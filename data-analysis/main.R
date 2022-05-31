@@ -316,12 +316,14 @@ gg_selected <- ggplot(selected_images, aes(x = factor(filename), y = iteration, 
   geom_point(aes(colour = algorithm_factor, shape = algorithm_factor), size = 3) +
   geom_line(aes(colour = algorithm_factor), linetype = "dashed", size = 1) +
   theme_minimal() +
-  theme(axis.text.x=element_text(angle = 45, hjust = 0.75)) +
+  theme(legend.position = c(0.8, 0.9),
+        legend.margin = margin(0,5,5,5),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill=alpha("white", 1)),
+        axis.text.x=element_text(angle = 45, hjust = 0.75)) +
   xlab("Image") +
   ylab("Max # of Repetitions") + 
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  guides(colour=guide_legend(title="Algorithm")) +
-  guides(shape=guide_legend(title="Algorithm"))
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 
 # ggsave(gg_selected, file="iterations.png", width=12, height=8, dpi = 300)
-# print(gg_selected)
+print(gg_selected)
