@@ -7,7 +7,6 @@ library(RColorBrewer)
 library(tools)
 library(tictoc)
 library(magick)
-library(imager)
 library(hrbrthemes)
 
 extract_from_file <- function(path_to_file) {
@@ -242,8 +241,8 @@ gg_selected <- ggplot(selected_images, aes(x = filename_factor, y = STD, fill = 
   guides(color=guide_legend(title="Algorithm")) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 
-ggsave(gg_selected, file="std.png", width=12, height=8, dpi = 300)
-print(gg_selected)
+# ggsave(gg_selected, file="std.png", width=12, height=8, dpi = 300)
+# print(gg_selected)
 
 ################### Iterations #####################
 
@@ -302,28 +301,42 @@ gg_selected <- ggplot(selected_images, aes(x = filename_factor, y = rate, color 
 ################### Brightness #####################
 
 selected_images <- last_iteration %>%
-  filter(grepl("uni", algorithm)) %>%
+  filter(algorithm %in% c("vb_scaling", "nb_vo_original", "original")) %>%
   filter(grepl("kodim", filename)) %>%
-  select(c(algorithm, filename, iteration))
+  select(c(algorithm, filename, STD))
 
-selected_images[selected_images$algorithm == "unidirection", "algorithm"] = "ACERDH"
-selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
-selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+selected_images$filename = rep(seq(1, 24), 3)
+# selected_images[selected_images$algorithm == "unidirection", "algorithm"] = "ACERDH"
+# selected_images[selected_images$algorithm == "bp_unidirection", "algorithm"] = "ACERDH with BP"
+# selected_images[selected_images$algorithm == "bp_unidirection_improved", "algorithm"] = "Proposed"
+# algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH", "ACERDH with BP"))
 
-algorithm_factor <- factor(selected_images$algorithm, levels = c("Proposed", "ACERDH", "ACERDH with BP"))
+# ordering_factor <- selected_images[selected_images$algorithm == "Proposed", c("filename", "rate")]
+# new_order <- fct_reorder(factor(selected_images$filename), rep(ordering_factor$rate, 3))
 
-gg_selected <- ggplot(selected_images, aes(x = factor(filename), y = iteration, group = algorithm_factor)) +
+selected_images[selected_images$algorithm == "vb_scaling", "algorithm"] = "LSVB"
+selected_images[selected_images$algorithm == "nb_vo_original", "algorithm"] = "NBVO"
+selected_images[selected_images$algorithm == "original", "algorithm"] = "RDHCE"
+algorithm_factor <- factor(selected_images$algorithm, levels = c("RDHCE", "NBVO", "LSVB"))
+
+
+ordering_factor <- selected_images[selected_images$algorithm == "RDHCE", c("filename", "STD")]
+new_order <- fct_reorder(factor(selected_images$filename), rep(ordering_factor$STD, 3))
+
+gg_selected <- ggplot(selected_images, aes(x = new_order, y = STD, group = algorithm_factor)) +
   geom_point(aes(colour = algorithm_factor, shape = algorithm_factor), size = 3) +
   geom_line(aes(colour = algorithm_factor), linetype = "dashed", size = 1) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = c(0.8, 0.9),
         legend.margin = margin(0,5,5,5),
         legend.title = element_blank(),
         legend.background = element_rect(fill=alpha("white", 1)),
-        axis.text.x=element_text(angle = 45, hjust = 0.75)) +
-  xlab("Image") +
-  ylab("Max # of Repetitions") + 
+        axis.title = element_text(size = 15),
+        axis.text = element_text(size = 15),
+        legend.text = element_text(size = 15)) +
+  xlab("Image Index") +
+  ylab("Embedding Rate (BPP)") + 
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 
-# ggsave(gg_selected, file="iterations.png", width=12, height=8, dpi = 300)
+# ggsave(gg_selected, file="kodek_bi_rate.png", width=12, height=8, dpi = 300)
 print(gg_selected)
