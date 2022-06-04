@@ -185,12 +185,12 @@ def resize_values(pixels, sizes_map):
 if __name__ == '__main__':
     import cv2
 
-    image = read_image('res/mo3tamad/lena2.tif')
+    image = read_image('res/mo3tamad/5.3.01.tiff')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = ScalingEmbedder(image.copy(), data)
-    extractor = ScalingExtractor()
+    embedder = VariableBitsScalingEmbedder(image.copy(), data, bit_limit=2)
+    extractor = VariableBitsScalingExtractor()
 
-    embedded_image, iterations, embedded_data_size = embedder.embed(64)
+    embedded_image, iterations, embedded_data_size = embedder.embed(96)
     recovered_image, recovery_iterations, extracted_data = extractor.extract(embedded_image)
 
     print(f'difference: {np.sum(np.abs(image - recovered_image))} \n'
