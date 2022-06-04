@@ -26,7 +26,7 @@ class OriginalEmbedder:
         return embedded_image, iterations, len(self._hidden_data) - len(self._buffer.next(-1))
 
     def _preprocess(self, iterations):
-        is_modified = np.zeros_like(self._processed_pixels, dtype=np.bool)
+        is_modified = np.zeros_like(self._processed_pixels, dtype=bool)
         lower_bound = self._processed_pixels < iterations
         upper_bound = MAX_PIXEL_VALUE - iterations < self._processed_pixels
         is_modified |= lower_bound
@@ -357,10 +357,10 @@ class BPNbVoExtractor(NbVoExtractor):
 if __name__ == '__main__':
     import cv2
 
-    image = read_image('res/under_over_exposed/Creek_grayscale.png')
+    image = read_image('res/mo3tamad/lena2.tif')
     data = bits_to_bytes(np.random.randint(0, 2, size=2000 * 2000) > 0)
-    embedder = BPNbVoEmbedder(image.copy(), data)
-    extractor = BPNbVoExtractor()
+    embedder = OriginalEmbedder(image.copy(), data)
+    extractor = OriginalExtractor()
 
     embedded, hidden_data_size, _ = embedder.embed(63)
     cv2.imwrite('out/embedded.png', embedded)
